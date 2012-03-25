@@ -1,0 +1,312 @@
+/**
+ * @author      Shushik <silkleopard@yandex.ru>
+ * @version     1.0 (dev)
+ * @description b-cal — a simple JavaScript/CSS calendar
+ */
+.b-cal
+{
+    font-family: Verdana, Helvetica, sans-serif;
+    font-size:   10px;
+
+    display:  none;
+    position: absolute;
+    z-index:  3;
+
+    padding: 3px;
+
+    background: #424242;
+    color:      #FFF;
+    border:     #5B5F62 solid 1px;
+
+    -webkit-border-radius: 3px;
+    -moz-border-radius:    3px;
+    border-radius:         3px;
+
+    -webkit-user-select: none;
+    -moz-user-select:    none;
+    user-select:         none;
+}
+
+.b-cal_is_visible
+{
+    display: block;
+}
+
+
+/* Calendar`s tail background (begin) */
+.b-cal__tail-in
+{
+    font-size: 0;
+
+    line-height: 0;
+
+    position: absolute;
+    top:      110px;
+    left:     -14px;
+
+    width:  0;
+    height: 0;
+
+    border:             transparent solid 7px;
+    border-right-color: #424242;
+}
+/* Calendar`s tail background (end) */
+
+
+/* Calendar`s tail border (begin) */
+.b-cal__tail-out
+{
+    font-size: 0;
+
+    line-height: 0;
+
+    position: absolute;
+    top:      110px;
+    left:     -15px;
+
+    width:  0;
+    height: 0;
+
+    border:             transparent solid 7px;
+    border-right-color: #5B5F62;
+}
+/* Calendar`s tail border (end) */
+
+
+/* «Hide calendar» pseudo link (begin) */
+.b-cal__hide
+{
+    text-align: center;
+
+    cursor: pointer;
+
+    padding:    2px 0 1px 0;
+    margin-top: 2px;
+
+    color:      #BABABA;
+    border-top: #5B5F62 solid 1px;
+}
+
+.b-cal__hide:hover
+{
+    color: #FFF;
+}
+/* «Hide calendar» pseudo link (end) */
+
+
+/* «Next month» arrow (begin) */
+.b-cal__next
+{
+    font-size: 0;
+
+    line-height: 0;
+
+    width:  0;
+    height: 0;
+
+    cursor:   pointer;
+    position: absolute;
+    top:      7px;
+    right:    5px;
+
+    border:            transparent solid 5px;
+    border-left-color: #BABABA;
+}
+
+.b-cal__next:hover
+{
+    border-left-color: #FFF;
+}
+
+.b-cal__next_is_disabled
+{
+    cursor: default;
+}
+
+.b-cal__next_is_disabled,
+body .b-cal__next_is_disabled:hover
+{
+    border-left-color: #5B5F62;
+}
+/* «Next month» arrow (end) */
+
+
+/* «Previous month» arrow (begin) */
+.b-cal__prev
+{
+    font-size: 0;
+
+    line-height: 0;
+
+    width:  0;
+    height: 0;
+
+    cursor:   pointer;
+    position: absolute;
+    top:      7px;
+    left:     5px;
+
+    border:             transparent solid 5px;
+    border-right-color: #BABABA;
+}
+
+.b-cal__prev:hover
+{
+    border-right-color: #FFF;
+}
+
+.b-cal__prev_is_disabled
+{
+    cursor: default;
+}
+
+.b-cal__prev_is_disabled,
+body .b-cal__prev_is_disabled:hover
+{
+    border-right-color: #5B5F62;
+}
+/* «Previous month» arrow (end) */
+
+
+/* Month name holder (begin) */
+.b-cal__month
+{
+    text-align: center;
+
+    padding: 2px 0 0 0;
+}
+/* Month name holder (end) */
+
+
+/* Weekdays holder (begin) */
+.b-cal__weekdays:after
+{
+    content: '';
+    display: block;
+    clear:   both;
+}
+
+* html .b-cal__weekdays,
+* html .b-cal__weekdays
+{
+    height: 1%;
+}
+/* Weekdays holder (end) */
+
+
+/* Weekday (begin) */
+.b-cal__weekday
+{
+    font-size: 8px;
+
+    text-align:  center;
+    line-height: 14px;
+
+    float:  left;
+
+    width:   20px;
+    padding: 2px 0;
+
+    border: transparent solid 1px;
+
+    color: #A8A779;
+}
+/* Weekday (end) */
+
+
+/* Days holder (begin) */
+.b-cal__days
+{
+    width:       154px;
+    padding-top: 5px;
+    margin-top:  2px;
+
+    border-top: #5B5F62 solid 1px;
+}
+
+.b-cal__days:after
+{
+    content: '';
+    display: block;
+    clear:   both;
+}
+
+* html .b-cal__days,
+* html .b-cal__days
+{
+    height: 1%;
+}
+/* Days holder (end) */
+
+
+/* Day (begin) */
+.b-cal__day
+{
+    text-align: center;
+    line-height: 14px;
+
+    cursor: pointer;
+    float:  left;
+
+    width:   20px;
+    padding: 2px 0;
+
+    border: transparent solid 1px;
+}
+
+.b-cal__day:hover
+{
+    border-color: #BABABA;
+}
+
+.b-cal__day_in_future
+{
+    cursor: default;
+
+    color: #666;
+}
+
+body .b-cal__day_in_future:hover
+{
+    border-color: transparent;
+}
+
+.b-cal__day_in_past
+{
+    cursor: default;
+
+    color: #666;
+}
+
+body .b-cal__day_in_past:hover
+{
+    border-color: transparent;
+}
+
+body .b-cal__day_in_presence,
+body .b-cal__day_in_presence:hover
+{
+    color: #FBF9B6;
+}
+
+body .b-cal__day_is_chosen,
+body .b-cal__day_is_chosen:hover
+{
+    cursor: default;
+
+    background:   #5B5F62;
+    border-color: #FBF9B6;
+}
+
+.b-cal__day_is_disabled
+{
+    cursor: default;
+
+    color: #666;
+}
+
+body .b-cal__day_is_disabled:hover
+{
+    border-color: transparent;
+}
+/* Day (end) */
