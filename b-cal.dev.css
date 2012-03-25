@@ -3,6 +3,9 @@
  * @version     1.0 (dev)
  * @description b-cal — a simple JavaScript/CSS calendar
  */
+
+
+/* Main block (begin) */
 .b-cal
 {
     font-family: Verdana, Helvetica, sans-serif;
@@ -31,6 +34,7 @@
 {
     display: block;
 }
+/* Main block (end) */
 
 
 /* Calendar`s tail background (begin) */
