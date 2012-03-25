@@ -1,5 +1,4 @@
-;(function(node) {
-    node = node || false;
+;(function(space) {
 
 
     var
@@ -717,4 +716,4 @@
     }
 
 
-})(space);
+})();
