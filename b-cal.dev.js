@@ -946,6 +946,10 @@
                 pttp  = Cal.prototype,
                 lang  = pttp._default.lang;
 
+            if (!pttp._lang) {
+                pttp._lang = {};
+            }
+
             for (alias in lang) {
                 if (given[alias]) {
                     pttp._lang[alias] = given[alias];
