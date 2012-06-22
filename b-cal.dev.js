@@ -4,7 +4,7 @@
     /**
      * @page        http://github.com/Shushik/b-cal/
      * @author      Shushik <silkleopard@yandex.ru>
-     * @version     2.0
+     * @version     1.0
      * @description a simple javascript calendar
      *
      * @constructor
@@ -126,7 +126,6 @@
             var
                 alias = '',
                 self  = this,
-                lang  = this._default.lang,
                 tmpl  = this._default.tmpl,
                 pure  = new Date();
 
@@ -136,17 +135,7 @@
             this.shown = false;
 
             // Setup language settings
-            if (!this._lang) {
-                Cal.prototype._lang = {};
-
-                for (alias in lang) {
-                    if (params.lang && params.lang[alias]) {
-                        Cal.prototype._lang[alias] = params.lang[alias];
-                    } else {
-                        Cal.prototype._lang[alias] = lang[alias];
-                    }
-                }
-            }
+            this.lang(params.lang);
 
             // Setup templates
             if (!params.tmpl) {
@@ -939,6 +928,33 @@
             }
 
             return holidays;
+        },
+        /**
+         * Load language settings
+         *
+         * @static
+         *
+         * @this    {Cal}
+         * @param   {Object}
+         * @returns {Cal|Object}
+         */
+        lang : function(given) {
+            given = given || {};
+
+            var
+                alias = '',
+                pttp  = Cal.prototype,
+                lang  = pttp._default.lang;
+
+            for (alias in lang) {
+                if (given[alias]) {
+                    pttp._lang[alias] = given[alias];
+                } else {
+                    pttp._lang[alias] = lang[alias];
+                }
+            }
+
+            return this._lang;
         },
         /**
          * Turn a date object into object with locale settings
