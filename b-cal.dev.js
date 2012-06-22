@@ -378,7 +378,7 @@
                 this._tangled.instance.hide();
             }
 
-            if (ignore != 'top') {
+            if (ignore != 'left') {
                 block.style.left = pos.left + 'px';
             }
 
