@@ -53,6 +53,10 @@
                 },
                 handlers : {
                     select : function(event, fn, data) {
+                        /*
+                            Your code here
+                        */
+
                         fn.done();
                         fn.hide();
                     }
