@@ -1,5 +1,6 @@
 .b-cal{font-family:Verdana, sans-serif;font-size:10px;display:none;position:absolute;z-index:3;width:154px;margin-top:7px;background:#424242;color:#FFF;border:#5B5F62 solid 1px;-webkit-border-radius:3px;-moz-border-radius:3px;border-radius:3px;-webkit-user-select:none;-moz-user-select:none;user-select:none;padding:3px}
 .b-cal_is_visible{display:block}
+.b-cal_no_tail{margin-top:0}
 .b-cal__day{text-align:center;line-height:14px;cursor:pointer;float:left;width:20px;border:transparent solid 1px;padding:2px 0}
 .b-cal__day:hover{border-color:#BABABA}
 body .b-cal__day_in_presence,body .b-cal__day_in_presence:hover{color:#FBF9B6}

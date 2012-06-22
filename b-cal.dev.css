@@ -29,6 +29,11 @@
     display: block;
 }
 
+.b-cal_no_tail
+{
+    margin-top: 0;
+}
+
 
 .b-cal__day
 {

@@ -243,7 +243,7 @@
              *
              * @private
              */
-            if (!params.external_offset) {
+            if (!params.offset_ignore) {
                 this._offset = this._offsetize(
                     this._nodes.field,
                     this._nodes.target
@@ -341,12 +341,13 @@
             pos = pos || {};
 
             var
-                alias = '',
-                now   = null,
-                min   = this._params.min_date,
-                max   = this._params.max_date,
-                block = this._nodes.block,
-                field = this._nodes.field;
+                alias  = '',
+                now    = null,
+                min    = this._params.min_date,
+                max    = this._params.max_date,
+                block  = this._nodes.block,
+                field  = this._nodes.field,
+                ignore = this._params.offset_ignore;
 
             // Try to use user given offset properties
             for (alias in this._offset) {
@@ -369,11 +370,20 @@
             this._draw(now, min, max);
 
             // Apply offset properties
-            block.style.top  = (pos.top + pos.height)  + 'px';
-            block.style.left = pos.left + 'px';
+            if (ignore != 'top') {
+                block.style.top  = (pos.top + pos.height)  + 'px';
+            }
+
+            if (this._tangled) {
+                this._tangled.instance.hide();
+            }
+
+            if (ignore != 'top') {
+                block.style.left = pos.left + 'px';
+            }
 
             // Add visibility class
-            this._nodes.block.className = 'b-cal b-cal_is_visible';
+            this._nodes.block.className += ' b-cal_is_visible';
 
             return this;
         },
@@ -385,7 +395,8 @@
          */
         hide : function() {
             // Remove visibility class
-            this._nodes.block.className = 'b-cal';
+            this._nodes.block.className = this._nodes.block.className
+                                          .replace(' b-cal_is_visible', '');
 
             // Change visibility indicator
             this.shown = false;
@@ -1097,7 +1108,9 @@
             }
 
             // Append all created stuff
-            if (!this._params.no_tail) {
+            if (this._params.no_tail) {
+                cal.className += ' b-cal_no_tail';
+            } else {
                 cal.appendChild(tout);
                 cal.appendChild(tin);
             }
