@@ -1,6 +1,28 @@
-/**
- * @author      Shushik <silkleopard@yandex.ru>
- * @version     1.0 (min)
- * @description b-cal — a simple JavaScript/CSS calendar
- */
-.b-cal{font-family:Verdana,Helvetica,sans-serif;font-size:10px;display:none;position:absolute;z-index:3;background:#424242;color:#FFF;border:#5B5F62 solid 1px;-webkit-border-radius:3px;-moz-border-radius:3px;border-radius:3px;-webkit-user-select:none;-moz-user-select:none;user-select:none;padding:3px}.b-cal_is_visible{display:block}.b-cal__tail-in{font-size:0;line-height:0;position:absolute;top:110px;left:-14px;width:0;height:0;border:transparent solid 7px;border-right-color:#424242}.b-cal__tail-out{font-size:0;line-height:0;position:absolute;top:110px;left:-15px;width:0;height:0;border:transparent solid 7px;border-right-color:#5B5F62}.b-cal__hide{text-align:center;cursor:pointer;margin-top:2px;color:#BABABA;border-top:#5B5F62 solid 1px;padding:2px 0 1px}.b-cal__hide:hover{color:#FFF}.b-cal__next{font-size:0;line-height:0;width:0;height:0;cursor:pointer;position:absolute;top:7px;right:5px;border:transparent solid 5px;border-left-color:#BABABA}.b-cal__next:hover{border-left-color:#FFF}.b-cal__next_is_disabled,body .b-cal__next_is_disabled:hover{border-left-color:#5B5F62}.b-cal__prev{font-size:0;line-height:0;width:0;height:0;cursor:pointer;position:absolute;top:7px;left:5px;border:transparent solid 5px;border-right-color:#BABABA}.b-cal__prev:hover{border-right-color:#FFF}.b-cal__prev_is_disabled,body .b-cal__prev_is_disabled:hover{border-right-color:#5B5F62}.b-cal__month{text-align:center;padding:2px 0 0}.b-cal__weekday{font-size:8px;text-align:center;line-height:14px;float:left;width:20px;border:transparent solid 1px;color:#A8A779;padding:2px 0}.b-cal__days{width:154px;padding-top:5px;margin-top:2px;border-top:#5B5F62 solid 1px}.b-cal__day{text-align:center;line-height:14px;cursor:pointer;float:left;width:20px;border:transparent solid 1px;padding:2px 0}.b-cal__day:hover{border-color:#BABABA}body .b-cal__day_in_presence,body .b-cal__day_in_presence:hover{color:#FBF9B6}body .b-cal__day_is_chosen,body .b-cal__day_is_chosen:hover{cursor:default;background:#5B5F62;border-color:#FBF9B6}.b-cal__next_is_disabled,.b-cal__prev_is_disabled{cursor:default}.b-cal__weekdays:after,.b-cal__days:after{content:'';display:block;clear:both}* html .b-cal__weekdays,* html .b-cal__weekdays,* html .b-cal__days,* html .b-cal__days{height:1%}.b-cal__day_in_future,.b-cal__day_in_past,.b-cal__day_is_disabled{cursor:default;color:#666}body .b-cal__day_in_future:hover,body .b-cal__day_in_past:hover,body .b-cal__day_is_disabled:hover{border-color:transparent}
+.b-cal{font-family:Verdana, sans-serif;font-size:10px;display:none;position:absolute;z-index:3;width:154px;margin-top:7px;background:#424242;color:#FFF;border:#5B5F62 solid 1px;-webkit-border-radius:3px;-moz-border-radius:3px;border-radius:3px;-webkit-user-select:none;-moz-user-select:none;user-select:none;padding:3px}
+.b-cal_is_visible{display:block}
+.b-cal__day{text-align:center;line-height:14px;cursor:pointer;float:left;width:20px;border:transparent solid 1px;padding:2px 0}
+.b-cal__day:hover{border-color:#BABABA}
+body .b-cal__day_in_presence,body .b-cal__day_in_presence:hover{color:#FBF9B6}
+body .b-cal__day_is_chosen,body .b-cal__day_is_chosen:hover{cursor:default;background:#5B5F62;border-color:#FBF9B6}
+body .b-cal__day_is_tangled,body .b-cal .b-cal__day_is_tangled:hover{color:#FFF;border-color:#D1D0AD}
+.b-cal__days{width:154px;padding-top:5px;margin-top:2px;border-top:#5B5F62 solid 1px}
+.h-ie_6 .b-cal__days,.h-ie_7 .b-cal__days{height:1%}
+.b-cal__hide{text-align:center;cursor:pointer;margin-top:2px;color:#BABABA;border-top:#5B5F62 solid 1px;padding:2px 0 1px}
+.b-cal__hide:hover{color:#FFF}
+.b-cal__hat{text-align:center;padding:2px 0 0}
+.b-cal__next{font-size:0;line-height:0;width:0;height:0;cursor:pointer;position:absolute;top:7px;right:5px;border:transparent solid 5px;border-left-color:#BABABA}
+.b-cal__next:hover{border-left-color:#FFF}
+.b-cal__next_is_disabled,body .b-cal__next_is_disabled:hover{border-left-color:#5B5F62}
+.b-cal__prev{font-size:0;line-height:0;width:0;height:0;cursor:pointer;position:absolute;top:7px;left:5px;border:transparent solid 5px;border-right-color:#BABABA}
+.b-cal__prev:hover{border-right-color:#FFF}
+.b-cal__prev_is_disabled,body .b-cal__prev_is_disabled:hover{border-right-color:#5B5F62}
+.b-cal__tail-in{font-size:0;line-height:0;position:absolute;top:-13px;left:71px;width:0;height:0;border:transparent solid 7px;border-bottom-color:#424242}
+.b-cal__tail-out{font-size:0;line-height:0;position:absolute;top:-14px;left:70px;width:0;height:0;border:transparent solid 7px;border-bottom-color:#5B5F62}
+.b-cal__weekday{font-size:8px;text-align:center;line-height:14px;float:left;width:20px;border:transparent solid 1px;color:#A8A779;padding:2px 0}
+.b-cal__day_in_past.b-cal__day_is_holiday,.b-cal__day_in_future.b-cal__day_is_holiday,.b-cal__day_is_disabled.b-cal__day_is_holiday{color:#A27770}
+.b-cal__day_in_future,.b-cal__day_in_past,.b-cal__day_is_disabled{cursor:default;color:#666}
+body .b-cal__day_in_future:hover,body .b-cal__day_in_past:hover,body .b-cal__day_is_disabled:hover{border-color:transparent}
+body .b-cal__day_is_holiday.b-cal__day_is_tangled,body .b-cal__day_is_holiday.b-cal__day_is_tangled:hover,.b-cal__day_is_holiday{color:#FBA89A}
+* html .b-cal__days,* html .b-cal__week{zoom:1}
+.b-cal__days:after,.b-cal__week:after{content:'';display:block;clear:both}
+.b-cal__next_is_disabled,.b-cal__prev_is_disabled{cursor:default}
