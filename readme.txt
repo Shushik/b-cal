@@ -50,6 +50,12 @@
                             ]
                         }
                     }
+                },
+                handlers : {
+                    select : function(event, fn, data) {
+                        fn.done();
+                        fn.hide();
+                    }
                 }
             );
     </code>
