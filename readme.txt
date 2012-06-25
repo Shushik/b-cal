@@ -272,3 +272,31 @@
               | — hide
               | — reset
     ======================================================================
+
+
+    Calendar`s own methods
+
+    Cal. object has two kinds of methods: instance methods and pseudostatic methods.
+
+    The first type contains calendar`s managing methods like .show(), .hide(),
+    .next() or .prev(). You may need them, if you`ll decide to make your own
+    calendar`s behavior logic: without a form field, for example.
+
+    The second type contains auxiliary helpers like .inside() which determines
+    if a given date is inside the given dates range. To use these methods
+    you do not need to create the a calendar`s instance.
+
+
+    Instance methods
+
+    
+
+
+    Pseudostatic methods
+
+    
+
+
+
+
+    
