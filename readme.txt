@@ -183,7 +183,92 @@
 
     User defined handlers
 
-     alias | description
+    Note, that calendar works with these handlers in asynchronous mode and
+    every handler has an event.target context while running and event object
+    as a first incoming argument. The second argument is an object, contains
+    own calendar`s methods with a saved calendar context. Usually it`s done
+    and hide. The only thing you should do is to call the calendar`s handler
+    after you finished your actions. «select» handler has the third argument
+    with the object, contains chosen date (Date()) and parsed (humanized)
+    date object.
+
+    <code>
+        var
+            cal = new Cal(
+                $('form')[0],
+                $('input[name="date"]', $('form')[0])[0],
+                {},
+                {
+                    // You defined the handler for select day action
+                    select : function(event, fn, data) {
+                        $.ajax({
+                            url : 'someyoururl',
+                            success : function() {
+                                // visual selection of the chosen date
+                                fn.done();
+                                fn.hide();
+                            }
+                        });
+                    }
+                }
+            );
+    </code>
+
+
+    Available handlers
+
+     alias    | description
     ======================================================================
+     show     | Runs before the calendar`s showing, so you can make some
+              | corrections for the calendar view
     ----------------------------------------------------------------------
+     select   | Runs before the chosen date selection, so you can even
+              | revert this action
+    ----------------------------------------------------------------------
+     deselect | Runs before the chosen date deselection
+    ======================================================================
+
+
+    Argumens, available inside the .show() handler
+
+     alias    | description
+    ======================================================================
+     event    | Standart event object
+    ----------------------------------------------------------------------
+     handlers | Native calendars functions:
+              | — done
+              | — hide
+    ======================================================================
+
+
+    Argumens, available inside the .select() handler
+
+     alias    | description
+    ======================================================================
+     event    | Standart event object
+    ----------------------------------------------------------------------
+     handlers | Native calendars functions:
+              | — done
+              | — hide
+              | — reset
+              | — undone
+    ----------------------------------------------------------------------
+     data     | Some useful data
+              | — raw   — Date() object with the current date
+              | — human — An object with the parsed and localized Date()
+              | — field — Form field where the current calendar instance
+              |           is tied up
+    ======================================================================
+
+
+    Argumens, available inside the .deselect() handler
+
+     alias    | description
+    ======================================================================
+     event    | Standart event object
+    ----------------------------------------------------------------------
+     handlers | Native calendars functions:
+              | — done
+              | — hide
+              | — reset
     ======================================================================
