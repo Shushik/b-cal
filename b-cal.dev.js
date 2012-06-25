@@ -27,7 +27,18 @@
 
 
     Cal.prototype = {
+        /**
+         * Locale vocabulary
+         *
+         * @private
+         */
         _lang : null,
+        /**
+         * Locale holidays
+         *
+         * @private
+         */
+        _holidays : [],
         /**
          * Default language properties
          *
@@ -42,7 +53,6 @@
             },
             lang : {
                 hide : 'Hide',
-                holidays : [],
                 weekdays : {
                     full : [
                         'Monday',
@@ -135,7 +145,7 @@
             this.shown = false;
 
             // Setup language settings
-            this.lang(params.lang);
+            Cal.lang(params.lang);
 
             // Setup templates
             if (!params.tmpl) {
@@ -358,7 +368,7 @@
 
             // Try to read a date from field
             if (field && field.value != '') {
-                now = this.parse(field.value, this._monthes2replaces());
+                now = Cal.parse(field.value);
             } else {
                 now = this._params.now_date;
             }
@@ -441,7 +451,7 @@
                 max = this._max,
                 raw = null;
 
-            raw = this.parse(to ? to : val, this._monthes2replaces());
+            raw = Cal.parse(to ? to : val);
 
             if (raw < min) {
                 raw = min;
@@ -517,7 +527,7 @@
              this._now = this._params.now_date;
              this._max = this._params.max_date;
 
-             this.count(this._now);
+             Cal.count(this._now);
 
              if (nodes.items.chosen) {
                  this.deselect();
@@ -716,7 +726,7 @@
                 // Day of month
                 day   = tmp[1];
                 year  = tmp[3];
-                month = this._indexof(tmp[2], monthes);
+                month = pttp._indexof(tmp[2], monthes);
             } else if (
                 tmp = dstr.match(new RegExp(
                     '(' +
@@ -728,7 +738,7 @@
                 ))
             ) {
                 year  = tmp[2];
-                month = this._indexof(tmp[1], monthes);
+                month = pttp._indexof(tmp[1], monthes);
             } else if (
                 tmp = dstr.match(new RegExp(
                     '.*(' +
@@ -740,7 +750,7 @@
                 ))
             ) {
                 year  = tmp[2];
-                month = this._indexof(tmp[1], monthes);
+                month = pttp._indexof(tmp[1], monthes);
             }
 
             // Check the day
@@ -882,7 +892,7 @@
             var
                 tmp      = (month + 1) + '',
                 alias    = year + '',
-                holidays = Cal.prototype._default.lang.holidays;
+                holidays = Cal.prototype._holidays;
 
             if (tmp.length == 1) {
                 tmp = '0' + tmp;
@@ -904,7 +914,7 @@
                 }
             }
 
-            return Cal.prototype.weekend(year, month, day);
+            return Cal.weekend(year, month, day);
         },
         /**
          * Load holidays or get loaded holidays list
@@ -920,7 +930,7 @@
                 pos      = 0,
                 end      = 0,
                 item     = '',
-                holidays = Cal.prototype._default.lang.holidays = [];
+                holidays = Cal.prototype._holidays = [];
 
             if (data && data.length) {
                 end = data.length;
@@ -978,24 +988,18 @@
          *
          * @this    {Cal}
          * @param   {Date}
-         * @param   {Object}
          * @returns {Object}
          */
-        human : function(raw, lang) {
-            if (!lang) {
-                if (Cal.prototype._lang) {
-                    lang = Cal.prototype._lang;
-                } else {
-                    lang = Cal.prototype._default.lang;
-                }
-            }
-
+        human : function(raw) {
             var
                 tmp     = 0,
                 day     = raw.getDate(),
                 year    = raw.getFullYear(),
                 month   = raw.getMonth(),
                 weekday = raw.getDay(),
+                lang    = Cal.prototype._lang ?
+                          Cal.prototype._lang :
+                          Cal.prototype._default.lang,
                 human   = {
                     days : new Date(year, (month + 1), -1),
                     day : {
@@ -1157,12 +1161,12 @@
                 tmp      = null,
                 node     = null,
                 nodes    = this._nodes,
-                data     = this._data = this.count(now),
-                hat      = this.human(data.curr.raw, this._lang),
+                data     = this._data = Cal.count(now),
+                hat      = Cal.human(data.curr.raw),
                 list     = nodes.items.list = [],
                 tmpl     = this._params.tmpl,
                 selected = this._nodes.items.alias,
-                holidays = this._default.lang.holidays;
+                holidays = this._holidays;
 
             // Select tangled selection
             if (this._tangled && this._tangled.instance._nodes.items.alias) {
@@ -1190,7 +1194,7 @@
             year  = data.prev.year;
             month = data.prev.month;
             alias = year + '-' + month + '-';
-            check = this.inside(
+            check = Cal.inside(
                 new Date(
                     year,
                     month,
@@ -1204,7 +1208,7 @@
             nodes.prev.className = 'b-cal__prev' + (check ? '' : ' b-cal__prev_is_disabled');
 
             for (day = data.prev.from; day <= data.prev.till; day++) {
-                holiday = this.holiday(year, month, day);
+                holiday = Cal.holiday(year, month, day);
 
                 node = this._day2node(day, month, year, 'past', check, false, holiday, tangled);
 
@@ -1231,7 +1235,7 @@
                     max
                 );
 
-                holiday = this.holiday(year, month, day);
+                holiday = Cal.holiday(year, month, day);
 
                 //
                 if (check && alias + day == origin) {
@@ -1272,7 +1276,7 @@
             nodes.next.className = 'b-cal__next' + (!check ? ' b-cal__next_is_disabled' : '');
 
             for (day = data.next.from; day <= data.next.till; day++) {
-                holiday = this.holiday(year, month, day);
+                holiday = Cal.holiday(year, month, day);
 
                 node = this._day2node(day, month, year, 'future', check, false, holiday, tangled);
 
@@ -1865,6 +1869,7 @@
 
 
     // Aliases for «static» functions
+    Cal.lang     = Cal.prototype.lang;
     Cal.human    = Cal.prototype.human;
     Cal.order    = Cal.prototype.order;
     Cal.count    = Cal.prototype.count;
