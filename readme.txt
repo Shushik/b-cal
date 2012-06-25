@@ -133,3 +133,57 @@
             // has the minimal date in range
             s.tangle(f, '<');
     </code>
+
+
+    Params for the constructor (if no params are given, calendar should be
+    inited by the .init() method before usage)
+
+     alias    | description
+    ======================================================================
+     target   | DOM node, where calendar will be created (document.body
+              | by default
+    ----------------------------------------------------------------------
+     field    | Field, which will be tied up to a calendar instance
+              | (null if you want your custom logic for calendar)
+    ----------------------------------------------------------------------
+     params   | Hash with the user defined settings
+    ----------------------------------------------------------------------
+     handlers | Hash with the user defined handlers
+    ======================================================================
+
+
+    User defined settings
+
+     alias         | description
+    ======================================================================
+     id            | Id for the curren calendar instance. Will appear in DOM
+                   | as b-cal_id_{{ your_id }} class
+    ----------------------------------------------------------------------
+     lang          | Locale vocabulary
+    ----------------------------------------------------------------------
+     tmpl          | Custom Django-styled templates for header, title for
+                   | the next and the previous arrows and template for
+                   | output for the tied up field (if exists)
+    ----------------------------------------------------------------------
+     min_date      | Minimal date in the calendar`s range (yesterday
+                   | by the default)
+    ----------------------------------------------------------------------
+     now_date      | Current date (today by the default)
+    ----------------------------------------------------------------------
+     max_date      | Maximal date in the calendar`s range (today + 1 year
+                   | by the default
+    ----------------------------------------------------------------------
+     no_tail       | True, if you don`t want the calendar`s tail
+                   | to be displayed
+    ----------------------------------------------------------------------
+     offset_ignore | True, if you want to place calendar block by the
+                   | regular CSS rules in your CSS file)
+    ======================================================================
+
+
+    User defined handlers
+
+     alias | description
+    ======================================================================
+    ----------------------------------------------------------------------
+    ======================================================================
