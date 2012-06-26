@@ -1,4 +1,8 @@
-    b-cal, a simple calendar like datepicker
+    b-cal, a simple calendar or datepicker
+
+
+    Homepage: http://github.com/shushik/b-cal/
+    Author:   Shushik <silkleopard@yandex.ru>
 
 
     Goods:
