@@ -439,19 +439,24 @@
          * Go to needed date
          *
          * @this    {Cal}
-         * @param   {String}
+         * @param   {String|Date}
          * @returns {Cal}
          */
         jump : function(to) {
             to = to || false;
 
             var
-                val = this._nodes.field.value,
-                min = this._min,
-                max = this._max,
-                raw = null;
+                val  = this._nodes.field.value,
+                type = typeof to,
+                min  = this._min,
+                max  = this._max,
+                raw  = null;
 
-            raw = Cal.parse(to ? to : val);
+            if (type == 'object') {
+                raw = to;
+            } else {
+                raw = Cal.parse(to ? to : val);
+            }
 
             if (raw < min) {
                 raw = min;
