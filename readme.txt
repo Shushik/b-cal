@@ -164,6 +164,8 @@
      tmpl          | Custom Django-styled templates for header, title for
                    | the next and the previous arrows and template for
                    | output for the tied up field (if exists)
+                   |
+                   | See the full list of templates below
     ----------------------------------------------------------------------
      min_date      | Minimal date in the calendar`s range (yesterday
                    | by the default)
@@ -440,6 +442,21 @@
               | — full
               | — decl
     ======================================================================
+
+
+    Available templates
+
+     NAME   | DESCRIPTION                   | DEFAULT VALUE
+    =============================================================================
+     hat    | Calendar title                | '{{ month.full }} {{ year.full }}'
+    -----------------------------------------------------------------------------
+     prev   | Title of the «previous» arrow | '{{ month.full }} {{ year.full }}'
+    -----------------------------------------------------------------------------
+     next   | Title of the «next» arrow     | '{{ month.full }} {{ year.full }}'
+    -----------------------------------------------------------------------------
+     stdout | String which will be inserted | '{{ day.num }} {{ month.part }}'
+            | into field                    |
+    =============================================================================
 
 
     Available variables in templates
