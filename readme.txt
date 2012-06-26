@@ -129,8 +129,8 @@
             // has the maximal date in range
             f.tangle(s, '>');
 
-            // Tie up the first calendar to the second and tell that the second calendar
-            // has the minimal date in range
+            // Tie up the first calendar to the second and tell that
+            // the second calendar has the minimal date in range
             s.tangle(f, '<');
     </code>
 
@@ -138,7 +138,7 @@
     Params for the constructor (if no params are given, calendar should be
     inited by the .init() method before usage)
 
-     alias    | description
+     NAME     | DESCRIPTION
     ======================================================================
      target   | DOM node, where calendar will be created (document.body
               | by default
@@ -154,10 +154,10 @@
 
     User defined settings
 
-     name          | description
+     NAME          | DESCRIPTION
     ======================================================================
-     id            | Id for the curren calendar instance. Will appear in DOM
-                   | as b-cal_id_{{ your_id }} class
+     id            | Id for the curren calendar instance. Will appear in
+                   | DOM as b-cal_id_{{ your_id }} class
     ----------------------------------------------------------------------
      lang          | Locale vocabulary
     ----------------------------------------------------------------------
@@ -183,14 +183,14 @@
 
     User defined handlers
 
-    Note, that calendar works with these handlers in asynchronous mode and
-    every handler has an event.target context while running and event object
-    as a first incoming argument. The second argument is an object, contains
-    own calendar`s methods with a saved calendar context. Usually it`s done
-    and hide. The only thing you should do is to call the calendar`s handler
-    after you finished your actions. «select» handler has the third argument
-    with the object, contains chosen date (Date()) and parsed (humanized)
-    date object.
+    Note, that calendar works with these handlers in asynchronous mode
+    and every handler has an event.target context while running and event
+    object as a first incoming argument. The second argument is an object,
+    contains own calendar`s methods with a saved calendar context. Usually
+    it`s .done() and .hide(). The only thing you should do is to call
+    the calendar`s handler after you finished your actions. «select»
+    handler has the third argument with the object, contains chosen date
+    (Date()) and parsed (humanized) date object.
 
     <code>
         var
@@ -217,7 +217,7 @@
 
     Available handlers
 
-     name     | description
+     NAME     | DESCRIPTION
     ======================================================================
      show     | Runs before the calendar`s showing, so you can make some
               | corrections for the calendar view
@@ -236,8 +236,8 @@
      event    | Standart event object
     ----------------------------------------------------------------------
      handlers | Native calendars functions:
-              | — done
-              | — hide
+              | — .done()
+              | — .hide()
     ======================================================================
 
 
@@ -248,10 +248,10 @@
      event    | Standart event object
     ----------------------------------------------------------------------
      handlers | Native calendars functions:
-              | — done
-              | — hide
-              | — reset
-              | — undone
+              | — .done()
+              | — .hide()
+              | — .reset()
+              | — .undone()
     ----------------------------------------------------------------------
      data     | Some useful data
               | — raw   — Date() object with the current date
@@ -268,28 +268,30 @@
      event    | Standart event object
     ----------------------------------------------------------------------
      handlers | Native calendars functions:
-              | — done
-              | — hide
-              | — reset
+              | — .done()
+              | — .hide()
+              | — .reset()
     ======================================================================
 
 
     Calendar`s own methods
 
-    Cal. object has two kinds of methods: instance methods and pseudostatic methods.
+    Cal. object has two kinds of methods: instance methods and
+    pseudostatic methods.
 
-    The first type contains calendar`s managing methods like .show(), .hide(),
-    .next() or .prev(). You may need them, if you`ll decide to make your own
-    calendar`s behavior logic: without a form field, for example.
+    The first type contains calendar`s managing methods like .show(),
+    .hide(), .next() or .prev(). You may need them, if you`ll decide
+    to make your own calendar`s behavior logic: without a form field,
+    for example.
 
-    The second type contains auxiliary helpers like .inside() which determines
-    if a given date is inside the given dates range. To use these methods
-    you do not need to create the a calendar`s instance.
+    The second type contains auxiliary helpers like .inside() which
+    determines if a given date is inside the given dates range. To use
+    these methods you do not need to create the a calendar`s instance.
 
 
     Instance methods
 
-     name         | description
+     NAME         | DESCRIPTION
     ======================================================================
      .init()      | Create a new calendar instance.
                   |
@@ -358,24 +360,112 @@
 
     Pseudostatic methods
 
-     name        | description
+     NAME        | DESCRIPTION
     ======================================================================
-     .order()    | 
+     .order()    | Take an array of Date objects and sort it ascending
+                 | way. Return sorted array or the minimal or maximal
+                 | value from it
+                 |
+                 | Arguments:
+                 | — array of dates
+                 | — 'min' or 'max' string
     ----------------------------------------------------------------------
-     .parse()    | 
+     .parse()    | Take a string and parse it into Date object
+                 |
+                 | Arguments:
+                 | — string contains date
     ----------------------------------------------------------------------
-     .human()    | 
+     .human()    | Get an object with humanized and localized Date values
+                 |
+                 | Arguments:
+                 | — Date object
     ----------------------------------------------------------------------
-     .count()    | 
+     .count()    | Make all counts for the currently shown month
+                 |
+                 | Arguments:
+                 | — Date (currently shown)
     ----------------------------------------------------------------------
-     .inside()   | 
+     .inside()   | Check if a date is in a dates range
+                 |
+                 | Arguments:
+                 | — Date which will be checked
+                 | — Date minimal in range
+                 | — Date maximal in range
     ----------------------------------------------------------------------
-     .weekend()  | 
+     .weekend()  | Check if a date is a weekend
+                 |
+                 | Arguments:
+                 | — year
+                 | — month
+                 | — day
     ----------------------------------------------------------------------
-     .holiday()  | 
+     .holiday()  | Check if a date is a holiday
+                 |
+                 | Arguments:
+                 | — year
+                 | — month
+                 | — day
     ----------------------------------------------------------------------
-     .lang()     | 
+     .lang()     | Load a vocabulary
+                 |
+                 | Arguments:
+                 | — vocabulary object (see detailed description below)
     ----------------------------------------------------------------------
-     .holidays() | 
+     .holidays() | Load a holidays list
+                 |
+                 | Arguments:
+                 | — an array with the dates in yyyy-mm-dd format. Note
+                 |   that dates should be given for the full range
+                 |   between the minimal and maximal calendar dates
+    ======================================================================
+
+
+    Vocabulary structure
+
+     NAME     | DESCRIPTION
+    ======================================================================
+     hide     | A string with a next for the «Hide» calendar element
+    ----------------------------------------------------------------------
+     weekdays | Object, contains two arrays with short and full weekdays
+              |
+              | Structure:
+              | — part
+              | — full
+    ----------------------------------------------------------------------
+     monthes  | Object, contains three arrays with short, full and
+              | declentioned monthes
+              |
+              | Structure:
+              | — part
+              | — full
+              | — decl
+    ======================================================================
+
+
+    Available variables in templates
+
+     NAME  | DESCRIPTION
+    ======================================================================
+     day   | An object with a chosen day data
+           |
+           | Structure:
+           | — num  _ day number without a leading zero
+           | — nums — day number with a leading zero
+           | — week — number of a weekday (sunday is 7)
+           | — part — shortened weekday name from a loaded vocabulary
+           | — full — full weekday name from a loaded vocabulary
+    ----------------------------------------------------------------------
+     days  | A number of days in a chosen month
+    ----------------------------------------------------------------------
+     year  | An object with a chosen year data
+    ----------------------------------------------------------------------
+     month | An object with a chosen month data
+           |
+           | Structure:
+           | — num  _ month number without a leading zero
+           | — nums — month number with a leading zero
+           | — part — shortened month name from a loaded vocabulary
+           | — full — full month name from a loaded vocabulary
+           | — decl — declentioned month name from a loaded vocabulary
     ======================================================================
 
