@@ -154,7 +154,7 @@
 
     User defined settings
 
-     alias         | description
+     name          | description
     ======================================================================
      id            | Id for the curren calendar instance. Will appear in DOM
                    | as b-cal_id_{{ your_id }} class
@@ -217,7 +217,7 @@
 
     Available handlers
 
-     alias    | description
+     name     | description
     ======================================================================
      show     | Runs before the calendar`s showing, so you can make some
               | corrections for the calendar view
@@ -289,14 +289,93 @@
 
     Instance methods
 
-    
+     name         | description
+    ======================================================================
+     .init()      | Create a new calendar instance.
+                  |
+                  | Arguments:
+                  | — node, where the calendar DOM will be created
+                  | — field node (if exists) or null
+                  | — params
+                  | — handlers
+    ----------------------------------------------------------------------
+     .tangle()    | Tie up two calendars together.
+                  |
+                  | Arguments:
+                  | — second calendar instance
+                  | — relationship indicator («<» or «>»)
+    ----------------------------------------------------------------------
+     .uninstall() | Remove a calendar instance
+    ----------------------------------------------------------------------
+     .min()       | Get or set minimal date in calendar`s range, returns
+                  | the current value of this property if no argument
+                  | is given
+                  |
+                  | Argumengs:
+                  | — Date() which should be set as minimal
+    ----------------------------------------------------------------------
+     .now()       | Get or set current date in calendar`s range, returns
+                  | the current value of this property if no argument
+                  | is given
+                  |
+                  | Argumengs:
+                  | — Date() which should be set as current
+    ----------------------------------------------------------------------
+     .max()       | Get or set maximal date in calendar`s range, returns
+                  | the current value of this property if no argument
+                  | is given
+                  |
+                  | Argumengs:
+                  | — Date() which should be set as maximal
+    ----------------------------------------------------------------------
+     .reset()     | Reset changed min, now and max property values
+                  | to default or taked from the min_date, now_date and
+                  | max_date params
+    ----------------------------------------------------------------------
+     .show()      | Show the calendar
+                  |
+                  | Arguments
+                  | — Object with a user defined top and left offsets
+    ----------------------------------------------------------------------
+     .hide()      | Hide the calendar
+    ----------------------------------------------------------------------
+     .prev()      | Go to previous month
+    ----------------------------------------------------------------------
+     .next()      | Go to next month
+    ----------------------------------------------------------------------
+     .jump()      | Jump to a custom date in calendar range. Actually
+                  | this function runs every time, user change the
+                  | calendar field value
+                  |
+                  | Arguments:
+                  | — string or Date() with the date you want to jump
+    ----------------------------------------------------------------------
+     .select()    | Select the currently chosen date
+    ----------------------------------------------------------------------
+     .deselect()  | Deselect selected date
+    ======================================================================
 
 
     Pseudostatic methods
 
-    
+     name        | description
+    ======================================================================
+     .order()    | 
+    ----------------------------------------------------------------------
+     .parse()    | 
+    ----------------------------------------------------------------------
+     .human()    | 
+    ----------------------------------------------------------------------
+     .count()    | 
+    ----------------------------------------------------------------------
+     .inside()   | 
+    ----------------------------------------------------------------------
+     .weekend()  | 
+    ----------------------------------------------------------------------
+     .holiday()  | 
+    ----------------------------------------------------------------------
+     .lang()     | 
+    ----------------------------------------------------------------------
+     .holidays() | 
+    ======================================================================
 
-
-
-
-    
