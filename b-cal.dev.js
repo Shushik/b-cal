@@ -683,9 +683,7 @@
             dstr = dstr || '';
 
             //
-            if (typeof dstr == 'number') {
-                dstr += '';
-            } else if (typeof dstr != 'string') {
+            if (typeof dstr != 'string' && typeof dstr != 'number') {
                 dstr = '';
             }
 
@@ -740,6 +738,21 @@
                     );
                 break;
 
+                case 'previous year':
+                case 'year ago':
+                    return new Date(
+                        origin.getFullYear() - 1,
+                        origin.getMonth()
+                    );
+                break;
+
+                case 'next year':
+                    return new Date(
+                        origin.getFullYear() + 1,
+                        origin.getMonth()
+                    );
+                break;
+
             }
 
             // Make replacements from the given vocabulary
@@ -750,7 +763,10 @@
                 );
             }
 
-            
+            // Year should be current by default
+            if (!dstr.match(/\d{4}/)) {
+                dstr += ' ' + origin.getFullYear();
+            }
 
             // Try to cheat
             dirt = new Date(dstr);
@@ -1081,7 +1097,8 @@
                     },
                     year : {
                         full : year,
-                        part : (year + '').substring(2)
+                        part : (year + '').substring(2),
+                        leap : new Date(year, 1, 29) == 1 ? true : false
                     },
                     month : {
                         num  : month,
@@ -1533,10 +1550,10 @@
                     })
                 );
 
-                // Catch focus on field
+                // Catch mousedown on field
                 this._events.push(
                     this._bind(field, 'mousedown', function(event) {
-                        this.focus();
+                        field.focus();
                     })
                 );
 
@@ -1546,7 +1563,7 @@
                         if (!self.shown) {
                             if (self._handlers.show) {
                                 self._handlers.show.call(
-                                    block,
+                                    field,
                                     event,
                                     {
                                         done : self._proxy(self.show, self),

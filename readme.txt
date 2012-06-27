@@ -479,6 +479,11 @@
      days  | A number of days in a chosen month
     ----------------------------------------------------------------------
      year  | An object with a chosen year data
+           |
+           | Structure:
+           | — part — two digits year number
+           | — full — four digits year number
+           | — leap — true in case of leap year
     ----------------------------------------------------------------------
      month | An object with a chosen month data
            |
