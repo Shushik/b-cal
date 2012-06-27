@@ -1008,8 +1008,8 @@
                 human   = {
                     days : new Date(year, (month + 1), -1),
                     day : {
-                        num   : day,
-                        nums  : day.length < 2 ? '0' + day : day,
+                        num   : day - 0,
+                        nums  : (day + '').length < 2 ? '0' + day : day,
                         week  : weekday < 1 ? 7 : weekday,
                         full  : '',
                         part : ''
