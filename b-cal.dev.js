@@ -1474,6 +1474,9 @@
 
             // These handlers should be binded only if the field is given
             if (field) {
+                // Turn off autocomplete
+                field.setAttribute('autocomplete', 'off');
+
                 // Close calendar on click ewerywhere
                 this._events.push(
                     this._bind(document, 'click', function(event) {
