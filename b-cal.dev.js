@@ -165,6 +165,8 @@
                     pure.getMonth(),
                     pure.getDate() - 1
                 );
+            } else if (typeof params.min_date == 'string') {
+                params.min_date = Cal.parse(params.min_date);
             }
 
             /**
@@ -177,6 +179,8 @@
             // Setup current date
             if (!params.now_date) {
                 params.now_date = pure;
+            } else if (typeof params.now_date == 'string') {
+                params.now_date = Cal.parse(params.now_date);
             }
 
             /**
@@ -193,6 +197,8 @@
                     pure.getMonth(),
                     pure.getDate()
                 );
+            } else if (typeof params.max_date == 'string') {
+                params.max_date = Cal.parse(params.max_date);
             }
 
             /**
@@ -478,6 +484,10 @@
          * @returns {Cal|Date}
          */
         max : function(to) {
+            if (typeof to == 'string') {
+                to = Cal.parse(to);
+            }
+
             if (to) {
                 this._max = to;
 
@@ -494,6 +504,10 @@
          * @returns {Cal|Date}
          */
         now : function(to) {
+            if (typeof to == 'string') {
+                to = Cal.parse(to);
+            }
+
             if (to) {
                 this._now = to;
 
@@ -510,6 +524,10 @@
          * @returns {Cal|Date}
          */
         min : function(to) {
+            if (typeof to == 'string') {
+                to = Cal.parse(to);
+            }
+
             if (to) {
                 this._min = to;
 
@@ -672,16 +690,57 @@
             }
 
             var
-                day     = 0,
-                year    = 0,
-                month   = 0,
-                alias   = '',
-                sep     = '[\\s\\.,\\/]',
-                tmp     = [],
-                pttp    = Cal.prototype,
-                lang    = pttp._monthes2replaces(),
-                origin  = new Date(),
-                monthes = pttp._default.lang.monthes.part;
+                day       = 0,
+                year      = 0,
+                month     = 0,
+                alias     = '',
+                sep       = '[\\s\\.,\\/]',
+                tmp       = [],
+                pttp      = Cal.prototype,
+                lang      = pttp._monthes2replaces(),
+                origin    = new Date(),
+                monthes   = pttp._default.lang.monthes.part;
+
+            // Simple replacements
+            switch (dstr) {
+
+                case 'now':
+                case 'today':
+                    return origin;
+                break;
+
+                case 'yesterday':
+                    return new Date(
+                        origin.getFullYear(),
+                        origin.getMonth(),
+                        origin.getDate() - 1
+                    );
+                break;
+
+                case 'tomorrow':
+                    return new Date(
+                        origin.getFullYear(),
+                        origin.getMonth(),
+                        origin.getDate() + 1
+                    );
+                break;
+
+                case 'next month':
+                    return new Date(
+                        origin.getFullYear(),
+                        origin.getMonth() + 1
+                    );
+                break;
+
+                case 'previous month':
+                case 'month ago':
+                    return new Date(
+                        origin.getFullYear(),
+                        origin.getMonth() - 1
+                    );
+                break;
+
+            }
 
             // Make replacements from the given vocabulary
             for (alias in lang) {
@@ -690,6 +749,8 @@
                     '$1' + monthes[lang[alias]] + '$2'
                 );
             }
+
+            
 
             // Try to cheat
             dirt = new Date(dstr);
@@ -996,11 +1057,15 @@
          * @returns {Object}
          */
         human : function(raw) {
+            if (typeof raw == 'string') {
+                raw = Cal.parse(raw);
+            }
+
             var
                 tmp     = 0,
                 day     = raw.getDate(),
                 year    = raw.getFullYear(),
-                month   = raw.getMonth(),
+                month   = raw.getMonth() + 1,
                 weekday = raw.getDay(),
                 lang    = Cal.prototype._lang ?
                           Cal.prototype._lang :
@@ -1008,21 +1073,21 @@
                 human   = {
                     days : new Date(year, (month + 1), -1),
                     day : {
-                        num   : day - 0,
-                        nums  : (day + '').length < 2 ? '0' + day : day,
-                        week  : weekday < 1 ? 7 : weekday,
-                        full  : '',
+                        num  : day - 0,
+                        nums : (day + '').length < 2 ? '0' + day : day,
+                        week : weekday < 1 ? 7 : weekday,
+                        full : '',
                         part : ''
                     },
                     year : {
-                        full  : year,
+                        full : year,
                         part : (year + '').substring(2)
                     },
                     month : {
-                        num   : month,
-                        nums  : (month + '').length < 2 ? '0' + month : month,
-                        full  : '',
-                        decl  : '',
+                        num  : month,
+                        nums : (month + '').length < 2 ? '0' + month : month,
+                        full : '',
+                        decl : '',
                         part : ''
                     }
                 };
@@ -1033,9 +1098,10 @@
             human.day.part = lang.weekdays.part[tmp];
 
             // Month names
-            human.month.full = lang.monthes.full[month];
-            human.month.decl = lang.monthes.decl[month];
-            human.month.part = lang.monthes.part[month];
+            tmp = human.month.num - 1;
+            human.month.full = lang.monthes.full[tmp];
+            human.month.decl = lang.monthes.decl[tmp];
+            human.month.part = lang.monthes.part[tmp];
 
             return human;
         },
@@ -1389,29 +1455,29 @@
                 block = this._nodes.block,
                 field = this._nodes.field;
 
-            // Close calendar on click ewerywhere
-            this._events.push(
-                this._bind(window, 'click', function(event) {
-                    var
-                        node = event.target;
-
-                    if (!node.className.match('b-cal') && node != field) {
-                        self.hide();
-                    }
-                })
-            );
-
-            // Close calendar on ESC
-            this._events.push(
-                this._bind(window, 'keydown', function(event) {
-                    if (event.keyCode == 27 && self.shown) {
-                        self.hide();
-                    }
-                })
-            );
-
             // These handlers should be binded only if the field is given
             if (field) {
+                // Close calendar on click ewerywhere
+                this._events.push(
+                    this._bind(document, 'click', function(event) {
+                        var
+                            node = event.target;
+    
+                        if (!node.className.match('b-cal') && node != field) {
+                            self.hide();
+                        }
+                    })
+                );
+
+                // Close calendar on ESC
+                this._events.push(
+                    this._bind(document, 'keydown', function(event) {
+                        if (event.keyCode == 27 && self.shown) {
+                            self.hide();
+                        }
+                    })
+                );
+
                 // Catch keys in field
                 this._events.push(
                     this._bind(field, 'keydown', function(event) {
@@ -1464,6 +1530,13 @@
                             break;
 
                         }
+                    })
+                );
+
+                // Catch focus on field
+                this._events.push(
+                    this._bind(field, 'mousedown', function(event) {
+                        this.focus();
                     })
                 );
 
