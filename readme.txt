@@ -171,6 +171,8 @@
                     |
                     | See the full list of templates below
     ----------------------------------------------------------------------
+     mirror         | Secondary (invisible) field node
+    ----------------------------------------------------------------------
      min_date       | Minimal date in the calendar`s range (yesterday
                     | by the default)
     ----------------------------------------------------------------------
