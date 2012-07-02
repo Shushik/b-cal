@@ -1,215 +1,75 @@
-;Cal = (function() {
+;(function() {
 
 
-    /**
-     * @page        http://github.com/Shushik/b-cal/
-     * @author      Shushik <silkleopard@yandex.ru>
-     * @version     1.0
-     * @description a simple javascript calendar
-     *
-     * @constructor
-     *
-     * @this    {Cal}
-     * @param   {DOMNode}
-     * @param   {DOMNode}
-     * @param   {Object}
-     * @param   {Object}
-     * @returns {Cal}
-     */
-    function
-        Cal(target, field, params, handlers) {
-            if (arguments && arguments.length > 1) {
-                this.init(target, field, params, handlers);
-            }
-
-            return this;
-        };
-
-
-    Cal.prototype = {
+    var
         /**
-         * Locale vocabulary
+         * @author      Shushik <silkleopard@yandex.ru>
+         * @version     1.0
+         * @description a simple javascript calendar
          *
-         * @private
-         */
-        _lang : null,
-        /**
-         * Locale holidays
+         * @constructor
          *
-         * @private
-         */
-        _holidays : [],
-        /**
-         * Default language properties
-         *
-         * @private
-         */
-        _default : {
-            tmpl : {
-                hat    : '{{ month.full }} {{ year.full }}',
-                prev   : '{{ month.full }} {{ year.full }}',
-                next   : '{{ month.full }} {{ year.full }}',
-                stdout : '{{ day.num }} {{ month.part }}'
-            },
-            lang : {
-                hide : 'Hide',
-                weekdays : {
-                    full : [
-                        'Monday',
-                        'Tuesday',
-                        'Wednesday',
-                        'Thursday',
-                        'Friday',
-                        'Saturday',
-                        'Sunday'
-                    ],
-                    part : [
-                        'Mo',
-                        'Tu',
-                        'We',
-                        'Th',
-                        'Fr',
-                        'Sa',
-                        'Su'
-                    ]
-                },
-                monthes : {
-                    full  : [
-                        'January',
-                        'February',
-                        'March',
-                        'April',
-                        'May',
-                        'June',
-                        'July',
-                        'August',
-                        'September',
-                        'October',
-                        'November',
-                        'December'
-                    ],
-                    decl : [
-                        'January',
-                        'February',
-                        'March',
-                        'April',
-                        'May',
-                        'June',
-                        'July',
-                        'August',
-                        'September',
-                        'October',
-                        'November',
-                        'December'
-                    ],
-                    part : [
-                        'Jan',
-                        'Feb',
-                        'Mar',
-                        'Apr',
-                        'May',
-                        'Jun',
-                        'Jul',
-                        'Aug',
-                        'Sep',
-                        'Oct',
-                        'Nov',
-                        'Dec'
-                    ]
-                }
-            }
-        },
-        /**
-         * Initialization (immediate or delayed)
-         *
-         * @this    {Cal}
-         * @param   {DOMNode}
-         * @param   {DOMNode}
-         * @param   {Object}
-         * @param   {Object}
+         * @this   {Cal}
+         * @param  {Object}
+         * @param  {Object}
+         * @param  {DOMNode}
+         * @param  {Object}
          * @returns {Cal}
          */
-        init : function(target, field, params, handlers) {
-            params   = params   || {};
-            handlers = handlers || {};
-
-            var
-                alias = '',
-                self  = this,
-                tmpl  = this._default.tmpl,
-                pure  = new Date();
+        Cal = function(dates, lang, target, handlers) {
+            /**
+             * Id of attached field
+             *
+             * @private
+             */
+            this._id = '';
 
             /**
              * Visibility indicator
              */
             this.shown = false;
 
-            // Setup language settings
-            Cal.lang(params.lang);
-
-            // Setup templates
-            if (!params.tmpl) {
-                params.tmpl = {};
-            }
-
-            for (alias in tmpl) {
-                if (!params.tmpl[alias]) {
-                    params.tmpl[alias] = tmpl[alias];
-                }
-            }
-
-            // Setup minimal date
-            if (!params.min_date) {
-                params.min_date = new Date(
-                    pure.getFullYear(),
-                    pure.getMonth(),
-                    pure.getDate() - 1
-                );
-            } else if (typeof params.min_date == 'string') {
-                params.min_date = Cal.parse(params.min_date);
-            }
-
             /**
-             * Minimal approved date
+             * Language settings
              *
              * @private
              */
-            this._min = params.min_date;
-
-            // Setup current date
-            if (!params.now_date) {
-                params.now_date = pure;
-            } else if (typeof params.now_date == 'string') {
-                params.now_date = Cal.parse(params.now_date);
-            }
+            this._lang = {
+                hide : 'hide',
+                week : [
+                    'Mo',
+                    'Tu',
+                    'We',
+                    'Th',
+                    'Fr',
+                    'Sa',
+                    'Su'
+                ],
+                month : [
+                    'Jan',
+                    'Feb',
+                    'Mar',
+                    'Apr',
+                    'May',
+                    'Jun',
+                    'Jul',
+                    'Aug',
+                    'Sep',
+                    'Oct',
+                    'Nov',
+                    'Dec'
+                ]
+            };
 
             /**
-             * Current date
+             * Loaded data
              *
              * @private
              */
-            this._now = params.now_date;
-
-            // Setup maximal date
-            if (!params.max_date) {
-                params.max_date = new Date(
-                    pure.getFullYear() + 1,
-                    pure.getMonth(),
-                    pure.getDate()
-                );
-            } else if (typeof params.max_date == 'string') {
-                params.max_date = Cal.parse(params.max_date);
-            }
+            this._loaded = {}
 
             /**
-             * Maximal approved date
-             *
-             * @private
-             */
-            this._max = params.max_date;
-
-            /**
-             * Dates, saved between the calendar calls
+             * Dates matrix
              *
              * @private
              */
@@ -220,928 +80,187 @@
             };
 
             /**
-             * Nodes list
+             * Stable dates origin
+             *
+             * @private
+             */
+            this._stable = {
+                min : null,
+                max : null,
+                now : null
+            };
+
+            /**
+             * Movable dates origin
+             *
+             * @private
+             */
+            this._moving = {
+                min : null,
+                max : null,
+                now : null
+            };
+
+            /**
+             * Necessary DOM nodes
              *
              * @private
              */
             this._nodes = {
+                cal    : null,
                 days   : null,
                 prev   : null,
                 next   : null,
-                week   : null,
-                items  : {
-                    alias   : '',
-                    list    : [],
-                    chosen  : null,
-                    clicked : null
-                },
-                block  : null,
-                field  : field,
-                target : target
+                tail   : null,
+                month  : null,
+                target : null
             };
 
             /**
-             * Another calendar instance, which is tangled with this instance
+             * User defined handlers
              *
              * @private
              */
-            this._tangled = null;
-
-            /**
-             * All registered event handlers
-             *
-             * @private
-             */
-            this._events = [];
-
-            /**
-             * Offset coordinates of the field
-             *
-             * @private
-             */
-            if (!params.offset_ignore) {
-                this._offset = this._offsetize(
-                    this._nodes.field,
-                    this._nodes.target
-                );
-            }
-
-            /**
-             * Saved user params
-             *
-             * @private
-             */
-            this._params = params;
-
-            /**
-             * Saved user handlers
-             *
-             * @private
-             */
-            this._handlers = handlers;
-
-            // So let`s start
-            this._install();
-
-            return this;
-        },
-        /**
-         * Kill and destroy
-         *
-         * @this    {Cal}
-         * @returns {Undefined}
-         */
-        uninstall : function() {
-            var
-                pos    = 0,
-                events = this._events.length,
-                remove = [
-                    '_min',
-                    '_now',
-                    '_max',
-                    'shown',
-                    '_data',
-                    '_nodes',
-                    '_events',
-                    '_offset',
-                    '_params',
-                    '_tangled',
-                    '_handlers',
-                    'hiddenable'
-                ],
-                event  = null,
-                child  = this._nodes.block,
-                parent = this._nodes.target;
-
-            // Unbind events
-            for (pos = 0; pos < events; pos++) {
-                event = this._events[pos];
-
-                this._unbind(event.target, event.alias, event.handler);
-            }
-
-            // Remove properties
-            for (pos = 0; pos < 7; pos++) {
-                delete this[remove[pos]];
-            }
-
-            // Remove DOM
-            parent.removeChild(child);
-
-            return true;
-        },
-        /**
-         * Tie up two calendar instances
-         *
-         * @this    {Cal}
-         * @param   {Cal}
-         * @param   {String}
-         * @returns {Cal}
-         */
-        tangle : function(instance, relation) {
-            this._tangled = {
-                instance : instance,
-                relation : relation
+            this._handlers = {
+                click : function() {}
             };
 
-            return this;
-        },
-        /**
-         * Show calendar
-         *
-         * @this    {Cal}
-         * @param   {Object}
-         * @returns {Cal}
-         */
-        show : function(pos) {
-            pos = pos || {};
-
-            var
-                alias  = '',
-                now    = null,
-                min    = this._params.min_date,
-                max    = this._params.max_date,
-                block  = this._nodes.block,
-                field  = this._nodes.field,
-                ignore = this._params.offset_ignore;
-
-            // Try to use user given offset properties
-            for (alias in this._offset) {
-                if (!pos[alias]) {
-                    pos[alias] = this._offset[alias];
-                }
-            }
-
-            // Try to read a date from field
-            if (field && field.value != '') {
-                now = Cal.parse(field.value);
-            } else {
-                now = this._params.now_date;
-            }
-
-            // Change indicator
-            this.shown = true;
-
-            // Draw DOM for a chosen calendar
-            this._draw(now, min, max);
-
-            // Apply offset properties
-            if (ignore != 'top') {
-                block.style.top  = (pos.top + pos.height)  + 'px';
-            }
-
-            if (this._tangled) {
-                this._tangled.instance.hide();
-            }
-
-            if (ignore != 'left') {
-                block.style.left = pos.left + 'px';
-            }
-
-            // Add visibility class
-            this._nodes.block.className += ' b-cal_is_visible';
+            this.init(dates, lang, target, handlers);
 
             return this;
-        },
-        /**
-         * Hide calendar
-         *
-         * @this    {Cal}
-         * @returns {Boolean|Cal}
-         */
-        hide : function() {
-            // Remove visibility class
-            this._nodes.block.className = this._nodes.block.className
-                                          .replace(' b-cal_is_visible', '');
-
-            // Change visibility indicator
-            this.shown = false;
-
-            return this;
-        },
-        /**
-         * Go to the previous month
-         *
-         * @this    {Cal}
-         * @returns {Cal}
-         */
-        prev : function() {
-            this._draw(this._data.prev.raw);
-
-            return this;
-        },
-        /**
-         * Go to the previous month
-         *
-         * @this    {Cal}
-         * @returns {Cal}
-         */
-        next : function() {
-            this._draw(this._data.next.raw);
-
-            return this;
-        },
-        /**
-         * Go to needed date
-         *
-         * @this    {Cal}
-         * @param   {String|Date}
-         * @returns {Cal}
-         */
-        jump : function(to) {
-            to = to || false;
-
-            var
-                val  = this._nodes.field.value,
-                type = typeof to,
-                min  = this._min,
-                max  = this._max,
-                raw  = null;
-
-            if (type == 'object') {
-                raw = to;
-            } else {
-                raw = Cal.parse(to ? to : val);
-            }
-
-            if (raw < min) {
-                raw = min;
-            }
-
-            if (raw > max) {
-                raw = max;
-            }
-
-            this._draw(raw);
-
-            return this;
-        },
-        /**
-         * Get or set the maximal calendar limit
-         *
-         * @this    {Cal}
-         * @param   {Date}
-         * @returns {Cal|Date}
-         */
-        max : function(to) {
-            if (typeof to == 'string') {
-                to = Cal.parse(to);
-            }
-
-            if (to) {
-                this._max = to;
-
-                return this;
-            }
-
-            return this._max;
-        },
-        /**
-         * Get or set the current calendar date
-         *
-         * @this    {Cal}
-         * @param   {Date}
-         * @returns {Cal|Date}
-         */
-        now : function(to) {
-            if (typeof to == 'string') {
-                to = Cal.parse(to);
-            }
-
-            if (to) {
-                this._now = to;
-
-                return this;
-            }
-
-            return this._now;
-        },
-        /**
-         * Get or set the minimal calendar limit
-         *
-         * @this    {Cal}
-         * @param   {Date}
-         * @returns {Cal|Date}
-         */
-        min : function(to) {
-            if (typeof to == 'string') {
-                to = Cal.parse(to);
-            }
-
-            if (to) {
-                this._min = to;
-
-                return this;
-            }
-
-            return this._min;
-        },
-        /**
-         * Restore chosen params
-         *
-         * @this    {Cal}
-         * @returns {Cal}
-         */
-         reset : function() {
-            var
-                nodes = this._nodes;
-
-             this._min = this._params.min_date;
-             this._now = this._params.now_date;
-             this._max = this._params.max_date;
-
-             Cal.count(this._now);
-
-             if (nodes.items.chosen) {
-                 this.deselect();
-             }
-
-             return this;
-         },
-        /**
-         * Select chosen element
-         *
-         * @this    {Cal}
-         * @returns {Cal}
-         */
-        select : function() {
-            var
-                day      = 0,
-                year     = 0,
-                month    = 0,
-                relation = '',
-                tmp      = null,
-                field    = null,
-                items    = this._nodes.items,
-                alias    = items.alias,
-                chosen   = items.chosen,
-                clicked  = items.clicked,
-                instance = null;
-
-            // Remove selection from previous selected item
-            if (chosen) {
-                chosen.className = chosen.className.replace(' b-cal__day_is_chosen', '');
-            }
-
-            // Select new item
-            chosen = items.chosen = clicked;
-            day    = chosen.getAttribute('data-day');
-            year   = chosen.getAttribute('data-year');
-            month  = chosen.getAttribute('data-month');
-            tmp    = new Date(year, month, day);
-            alias  = items.alias = year + '-' +
-                                   month + '-' +
-                                   day;
-
-            chosen.className += ' b-cal__day_is_chosen';
-
-            // Move range in tied calendar instance
-            if (this._tangled) {
-                instance = this._tangled.instance;
-                relation = this._tangled.relation;
-                field    = instance._nodes.field;
-
-                if (relation == '>') {
-                    instance.min(tmp);
-                    instance.show();
-                } else if (relation == '<') {
-                    instance.max(tmp);
-                }
-
-                this.hide();
-            }
-
-            return this;
-        },
-        /**
-         * Deselect chosen elements
-         *
-         * @this    {Cal}
-         * @returns {Cal}
-         */
-        deselect : function() {
-            var
-                items   = this._nodes.items,
-                chosen  = items.chosen,
-                alias   = items.alias,
-                clicked = items.clicked;
-
-            // Deselect selected item
-            chosen.className = chosen.className.replace(' b-cal__day_is_chosen', '');
-
-            alias   = items.alias = '';
-            chosen  = items.chosen = null;
-            clicked = null;
-
-            // Reset both calendar instances
-            if (this._tangled) {
-                this.reset();
-                this._tangled.instance.reset();
-            }
-
-            return this;
-        },
-        /**
-         * Get the minimal or the maximal date from the given list,
-         * or the sorted dates list
-         *
-         * @static
-         *
-         * @this    {Cal}
-         * @param   {Array}
-         * @param   {String}
-         * @returns {Date}
-         */
-        order : function(dates, which) {
-            which = which || false;
-            dates = dates.sort(function(a, b) {
-                if (a > b) {
-                    return 1;
-                } else {
-                    return - 1;
-                }
-            });
-
-            if (which == 'min') {
-                return dates.shift()
-            } else if (which == 'max') {
-                return dates.pop();
-            }
-
-            return dates;
-        },
-        /**
-         * Custom parsing of the date string
-         *
-         * @static
-         *
-         * @this    {Cal}
-         * @param   {String}
-         * @returns {Date}
-         */
-        parse : function(dstr) {
-            dstr = dstr || '';
-
-            //
-            if (typeof dstr != 'string' && typeof dstr != 'number') {
-                dstr = '';
-            }
-
-            var
-                day       = 0,
-                year      = 0,
-                month     = 0,
-                alias     = '',
-                sep       = '[\\s\\.,\\/]',
-                tmp       = [],
-                pttp      = Cal.prototype,
-                lang      = pttp._monthes2replaces(),
-                origin    = new Date(),
-                monthes   = pttp._default.lang.monthes.part;
-
-            // Simple replacements
-            switch (dstr) {
-
-                case 'now':
-                case 'today':
-                    return origin;
-                break;
-
-                case 'yesterday':
-                    return new Date(
-                        origin.getFullYear(),
-                        origin.getMonth(),
-                        origin.getDate() - 1
-                    );
-                break;
-
-                case 'tomorrow':
-                    return new Date(
-                        origin.getFullYear(),
-                        origin.getMonth(),
-                        origin.getDate() + 1
-                    );
-                break;
-
-                case 'next month':
-                    return new Date(
-                        origin.getFullYear(),
-                        origin.getMonth() + 1
-                    );
-                break;
-
-                case 'previous month':
-                case 'month ago':
-                    return new Date(
-                        origin.getFullYear(),
-                        origin.getMonth() - 1
-                    );
-                break;
-
-                case 'previous year':
-                case 'year ago':
-                    return new Date(
-                        origin.getFullYear() - 1,
-                        origin.getMonth()
-                    );
-                break;
-
-                case 'next year':
-                    return new Date(
-                        origin.getFullYear() + 1,
-                        origin.getMonth()
-                    );
-                break;
-
-            }
-
-            // Make replacements from the given vocabulary
-            for (alias in lang) {
-                dstr = dstr.replace(
-                    new RegExp('(^|\\s)' + alias + '($|\\s)'),
-                    '$1' + monthes[lang[alias]] + '$2'
-                );
-            }
-
-            // Year should be current by default
-            if (!dstr.match(/\d{4}/)) {
-                dstr += ' ' + origin.getFullYear();
-            }
-
-            // Try to cheat
-            dirt = new Date(dstr);
-
-            // Check if the cheated date is correct
-            if (dirt.getDate()) {
-                return dirt;
-            }
-
-            if (dstr.match(new RegExp('\\d{1,2}' + sep + '\\d{1,2}(' + sep + '\\d{2,4})?'))) {
-                // 00 00 00[00]
-                tmp = dstr.split(new RegExp(sep));
-
-                day   = tmp[0];
-                month = tmp[1];
-
-                if (tmp[2]) {
-                    year = tmp[2];
-                }
-            } else if (dstr.match(new RegExp('\\d{2,4}' + sep + '\\d{1,2}' + sep + '\\d{1,2}'))) {
-                // 00[00] 00 00
-                tmp = dstr.split(new RegExp(sep));
-
-                day   = tmp[2];
-                year  = tmp[0];
-                month = tmp[1];
-            } else if (
-                tmp = dstr.match(new RegExp(
-                    '(\\d{1,2})' +
-                    sep +
-                    '(' +
-                    monthes.join('|') +
-                    ')(' +
-                    sep +
-                    '\\d{4})?.*',
-                    'i'
-                ))
-            ) {
-                // Day of month
-                day   = tmp[1];
-                year  = tmp[3];
-                month = pttp._indexof(tmp[2], monthes);
-            } else if (
-                tmp = dstr.match(new RegExp(
-                    '(' +
-                    monthes.join('|') +
-                    ')' +
-                    sep +
-                    '(\\d{4})?.*',
-                    'i'
-                ))
-            ) {
-                year  = tmp[2];
-                month = pttp._indexof(tmp[1], monthes);
-            } else if (
-                tmp = dstr.match(new RegExp(
-                    '.*(' +
-                    monthes.join('|') +
-                    ')' +
-                    '.*' +
-                    '(\\d{4})?.*',
-                    'i'
-                ))
-            ) {
-                year  = tmp[2];
-                month = pttp._indexof(tmp[1], monthes);
-            }
-
-            // Check the day
-            if (!day || day < 1) {
-                day = 1;
-            } else if (day.length < 2) {
-                day = '0' + day;
-            }
-
-            // Check the month
-            if (!month) {
-                month = 0;
-            }
-
-            // Check the year
-            if (!year) {
-                year = origin.getFullYear();
-            }
-
-            return new Date(year, month, day);
-        },
-        /**
-         * A kind of calendar math
-         *
-         * @static
-         *
-         * @this    {Cal}
-         * @param   {Date}
-         * @returns {Object}
-         */
-        count : function(now) {
-            now = now || new Date();
-
-            var
-                all  = 42,
-                tmp  = 0,
-                curr = null,
-                prev = null,
-                next = null,
-                data = {};
-
-            // Set current date for a chosen month
-            curr = data.curr = {};
-            curr.raw   = new Date(now);
-            curr.day   = curr.raw.getDate();
-            curr.month = curr.raw.getMonth();
-            curr.year  = curr.raw.getFullYear();
-            curr.till  = new Date(curr.year, curr.month + 1, 0).getDate();
-            curr.from  = 1;
-            curr.beg   = new Date(curr.year, curr.month, 1).getDay();
-            curr.end   = new Date(curr.year, curr.month, curr.till).getDate();
-
-            if (curr.beg == 0) {
-                curr.beg = 7;
-            }
-
-            all -= curr.till;
-
-            // Set previous date for a chosen month
-            prev = data.prev = {};
-            prev.raw   = new Date(curr.year, curr.month - 1);
-            prev.month = prev.raw.getMonth();
-            prev.year  = prev.raw.getFullYear();
-            prev.till  = new Date(prev.year, curr.month, 0).getDate();
-            prev.from  = prev.till - (curr.beg - 2);
-            prev.total = prev.till - prev.from;
-
-            all -= curr.beg;
-
-            // Set next date for a chosen month
-            next = data.next = {};
-            next.raw   = new Date(curr.year, curr.month + 1);
-            next.month = next.raw.getMonth();
-            next.year  = next.raw.getFullYear();
-            next.till  = all + 1;
-            next.from  = 1;
-            next.total = next.till - next.from;
-
-            return data;
-        },
-        /**
-         * Check if the given date is between the minimal and maximal
-         *
-         * @static
-         *
-         * @this    {Cal}
-         * @param   {Date}
-         * @param   {Date}
-         * @param   {Date}
-         * @returns {Boolean}
-         */
-        inside : function(now, min, max, t) {
-            if (now > min && now < max) {
-                return true;
-            }
-
-            return false;
-        },
-        /**
-         * Check if the day is weekend
-         *
-         * @static
-         *
-         * @this    {Cal}
-         * @param   {Number}
-         * @param   {Number}
-         * @param   {Number}
-         * @returns {Boolean}
-         */
-        weekend : function(year, month, day) {
-            day   -= 0;
-            year  -= 0;
-            month -= 0;
-
-            var
-                check = new Date(year, month, day).getDay();
-
-            if (check == 0 || check == 6) {
-                return true;
-            }
-
-            return false;
-        },
-        /**
-         * Check if the day is holiday
-         *
-         * @static
-         *
-         * @this    {Cal}
-         * @param   {Number}
-         * @param   {Number}
-         * @param   {Number}
-         * @returns {Boolean}
-         */
-        holiday : function(year, month, day) {
-            day   += '';
-            year  += '';
-
-            var
-                tmp      = (month + 1) + '',
-                alias    = year + '',
-                holidays = Cal.prototype._holidays;
-
-            if (tmp.length == 1) {
-                tmp = '0' + tmp;
-            }
-
-            alias += '-' + tmp;
-
-            if (day.length == 1) {
-                day = '0' + day;
-            }
-
-            alias += '-' + day;
-
-            if (holidays) {
-                if (holidays.length && Cal.prototype._indexof(alias, holidays) != -1) {
-                    return true;
-                } else {
-                    return false;
-                }
-            }
-
-            return Cal.weekend(year, month, day);
-        },
-        /**
-         * Load holidays or get loaded holidays list
-         *
-         * @static
-         *
-         * @this    {Cal}
-         * @param   {Array}
-         * @returns {Array}
-         */
-        holidays : function(data) {
-            var
-                pos      = 0,
-                end      = 0,
-                item     = '',
-                holidays = Cal.prototype._holidays = [];
-
-            if (data && data.length) {
-                end = data.length;
-
-                for (pos = 0; pos < end; pos++) {
-                    item = data[pos];
-
-                    if (typeof item == 'object') {
-                        item =  item.year + '-' +
-                                item.month + '-' +
-                                item.day;
+        };
+
+        Cal.prototype = {
+            /**
+             * @this   {Cal}
+             * @param  {Object}
+             * @param  {Object}
+             * @param  {DOMNode}
+             * @param  {Object}
+             * @returns {Cal}
+             */
+            init : function(dates, lang, target, handlers) {
+                lang     = lang     || false;
+                dates    = dates    || {};
+                target   = target   || document.body;
+                handlers = handlers || {};
+
+                var
+                    alias = '';
+
+                // DOM node where the calendar lives
+                this._nodes.target = target;
+
+                // Set user defined
+                if (lang) {
+                    for (alias in this._lang) {
+                        this._lang[alias] = lang[alias];
                     }
-
-                    holidays.push(item);
                 }
-            }
 
-            return holidays;
-        },
-        /**
-         * Load language settings
-         *
-         * @static
-         *
-         * @this    {Cal}
-         * @param   {Object}
-         * @returns {Cal|Object}
-         */
-        lang : function(given) {
-            given = given || {};
-
-            var
-                alias = '',
-                pttp  = Cal.prototype,
-                lang  = pttp._default.lang;
-
-            if (!pttp._lang) {
-                pttp._lang = {};
-            }
-
-            for (alias in lang) {
-                if (given[alias]) {
-                    pttp._lang[alias] = given[alias];
-                } else {
-                    pttp._lang[alias] = lang[alias];
+                // Set user defined handlers
+                for (alias in handlers) {
+                    this._handlers[alias] = handlers[alias];
                 }
-            }
 
-            return this._lang;
-        },
-        /**
-         * Turn a date object into object with locale settings
-         *
-         * @static
-         *
-         * @this    {Cal}
-         * @param   {Date}
-         * @returns {Object}
-         */
-        human : function(raw) {
-            if (typeof raw == 'string') {
-                raw = Cal.parse(raw);
-            }
+                // Create a new calendar
+                this.preset(dates)._create();
 
-            var
-                tmp     = 0,
-                day     = raw.getDate(),
-                year    = raw.getFullYear(),
-                month   = raw.getMonth() + 1,
-                weekday = raw.getDay(),
-                lang    = Cal.prototype._lang ?
-                          Cal.prototype._lang :
-                          Cal.prototype._default.lang,
-                human   = {
-                    days : new Date(year, (month + 1), -1),
-                    day : {
-                        num  : day - 0,
-                        nums : (day + '').length < 2 ? '0' + day : day,
-                        week : weekday < 1 ? 7 : weekday,
-                        full : '',
-                        part : ''
-                    },
-                    year : {
-                        full : year,
-                        part : (year + '').substring(2),
-                        leap : new Date(year, 1, 29) == 1 ? true : false
-                    },
-                    month : {
-                        num  : month,
-                        nums : (month + '').length < 2 ? '0' + month : month,
-                        full : '',
-                        decl : '',
-                        part : ''
-                    }
-                };
+                return this;
+            },
+            /**
+             * Check the date between maximum and minimum
+             *
+             * @private
+             *
+             * @this   {Cal}
+             * @param  {Date}
+             * @param  {Date}
+             * @param  {Date}
+             * @returns {Boolean}
+             */
+            _inside : function(day, min, max) {
+                if (day > min && day < max) {
+                    return true
+                }
 
-            // Days of week names
-            tmp = human.day.week - 1;
-            human.day.full = lang.weekdays.full[tmp];
-            human.day.part = lang.weekdays.part[tmp];
+                return false;
+            },
+            /**
+             * A kind of calendar math
+             *
+             * @private
+             *
+             * @this   {Cal}
+             * @returns {Cal}
+             */
+            _count : function() {
+                var
+                    all   = 42,
+                    tmp   = 0,
+                    curr  = null,
+                    prev  = null,
+                    next  = null;
 
-            // Month names
-            tmp = human.month.num - 1;
-            human.month.full = lang.monthes.full[tmp];
-            human.month.decl = lang.monthes.decl[tmp];
-            human.month.part = lang.monthes.part[tmp];
+                // Clean the previous and next dates
+                this._data.prev = null;
+                this._data.next = null;
 
-            return human;
-        },
-        /**
-         * Create an instance variables and DOM tree
-         *
-         * @private
-         *
-         * @this    {Cal}
-         * @returns {Cal}
-         */
-        _install : function() {
-            var
-                pos   = 0,
-                alias = '',
-                cal   = null,
-                tin   = null,
-                self  = this,
-                tout  = null,
-                hide  = null,
-                node  = null;
+                // Set current date for a chosen month
+                curr = this._data.curr = {}
+                curr.raw   = new Date(this._moving.now);
+                curr.month = curr.raw.getMonth();
+                curr.year  = curr.raw.getFullYear();
+                curr.till  = new Date(curr.year, curr.month + 1, 0).getDate();
+                curr.from  = 1;
+                curr.beg   = new Date(curr.year, curr.month, 1).getDay();
+                curr.end   = new Date(curr.year, curr.month, curr.till).getDate();
 
-            if (!this._params.no_tail) {
+                if (curr.beg == 0) {
+                    curr.beg = 7;
+                }
+
+                all -= curr.till;
+
+                // Set previous date for a chosen month
+                prev = this._data.prev = {};
+                prev.raw   = new Date(curr.year, curr.month - 1);
+                prev.month = prev.raw.getMonth();
+                prev.year  = prev.raw.getFullYear();
+                prev.till  = new Date(prev.year, curr.month, 0).getDate();
+                prev.from  = prev.till - (curr.beg - 2);
+
+                all -= curr.beg;
+
+                // Set next date for a chosen month
+                next = this._data.next = {};
+                next.raw   = new Date(curr.year, curr.month + 1);
+                next.month = next.raw.getMonth();
+                next.year  = next.raw.getFullYear();
+                next.till  = all + 1;
+                next.from  = 1;
+
+                return this;
+            },
+            /**
+             * Create main DOM structure
+             *
+             * @private
+             *
+             * @this   {Cal}
+             * @returns {Cal}
+             */
+            _create : function() {
+                var
+                    pos   = 0,
+                    alias = '',
+                    cal   = null,
+                    tin   = null,
+                    self  = this,
+                    tout  = null,
+                    hide  = null,
+                    node  = null;
+
                 // Background of calendar`s tail
                 tin = document.createElement('div');
                 tin.className = 'b-cal__tail-in';
@@ -1149,837 +268,575 @@
                 // Border of calendar`s tail
                 tout = document.createElement('div');
                 tout.className = 'b-cal__tail-out';
-            }
 
-            // «Hide» link
-            hide = document.createElement('div');
-            hide.className = 'b-cal__hide';
-            hide.innerHTML = this._lang.hide;
+                // «Hide» link
+                hide = document.createElement('div');
+                hide.className = 'b-cal__hide';
+                hide.innerHTML = this._lang.hide;
 
-            // Parent calendar`s node
-            cal = this._nodes.block = document.createElement('div');
-            cal.className = 'b-cal';
+                // Parent calendar`s node
+                cal = this._nodes.cal = document.createElement('div');
+                cal.className = 'b-cal';
 
-            // Turn on quirks styles detector
-            if (document.documentElement.clientHeight == 0) {
-                cal.className += ' b-cal_mode_quirks';
-            }
+                // «Previous» arrow
+                this._nodes.prev = document.createElement('div');
+                this._nodes.prev.className = 'b-cal__prev';
 
-            // Append user defined id
-            if (this._params.id) {
-                cal.className += ' b-cal_id_' + this._params.id;
-            }
+                // «Next» arrow
+                this._nodes.next = document.createElement('div');
+                this._nodes.next.className =  'b-cal__next';
 
-            // «Previous» arrow
-            this._nodes.prev = document.createElement('div');
-            this._nodes.prev.className = 'b-cal__prev';
+                // Month`s name holder
+                this._nodes.month = document.createElement('div');
+                this._nodes.month.className = 'b-cal__month';
 
-            // «Next» arrow
-            this._nodes.next = document.createElement('div');
-            this._nodes.next.className =  'b-cal__next';
+                // Month days holder
+                this._nodes.days = document.createElement('div');
+                this._nodes.days.className = 'b-cal__days';
 
-            // Month`s name holder
-            this._nodes.month = document.createElement('div');
-            this._nodes.month.className = 'b-cal__hat';
+                // Weekdays holder
+                this._nodes.week = document.createElement('div');
+                this._nodes.week.className = 'b-cal__week';
 
-            // Month days holder
-            this._nodes.days = document.createElement('div');
-            this._nodes.days.className = 'b-cal__days';
+                // Weekdays
+                for (pos = 0; pos < 7; pos++) {
+                    node = document.createElement('div');
+                    node.className = 'b-cal__weekday';
+                    node.innerHTML = this._lang.week[pos];
 
-            // Weekdays holder
-            this._nodes.week = document.createElement('div');
-            this._nodes.week.className = 'b-cal__week';
+                    this._nodes.week.appendChild(node);
+                }
 
-            // Weekdays
-            for (pos = 0; pos < 7; pos++) {
-                node = document.createElement('div');
-                node.className = 'b-cal__weekday';
-                node.innerHTML = this._lang.weekdays.part[pos];
-
-                this._nodes.week.appendChild(node);
-            }
-
-            // Append all created stuff
-            if (this._params.no_tail) {
-                cal.className += ' b-cal_no_tail';
-            } else {
+                // Append all created stuff
                 cal.appendChild(tout);
                 cal.appendChild(tin);
-            }
+                cal.appendChild(this._nodes.month);
+                cal.appendChild(this._nodes.prev);
+                cal.appendChild(this._nodes.next);
+                cal.appendChild(this._nodes.week);
+                cal.appendChild(this._nodes.days);
+                cal.appendChild(hide);
+                this._nodes.target.appendChild(cal);
 
-            cal.appendChild(this._nodes.month);
-            cal.appendChild(this._nodes.prev);
-            cal.appendChild(this._nodes.next);
-            cal.appendChild(this._nodes.week);
-            cal.appendChild(this._nodes.days);
-            cal.appendChild(hide);
-            this._nodes.target.appendChild(cal);
-
-            this._alive();
-
-            return this;
-        },
-        /**
-         * Create a DOM for chosen month
-         *
-         * @private
-         *
-         * @this    {Cal}
-         * @param   {Date}
-         * @returns {Cal}
-         */
-        _draw : function(now) {
-            var
-                check    = false,
-                choose   = false,
-                select   = false,
-                holiday  = false,
-                day      = 0,
-                year     = 0,
-                month    = 0,
-                alias    = '',
-                origin   = this._now.getFullYear() +
-                           '-' +
-                           this._now.getMonth() +
-                           '-' +
-                           this._now.getDate(),
-                tangled  = '',
-                min      = this._min,
-                max      = this._max,
-                tmp      = null,
-                node     = null,
-                nodes    = this._nodes,
-                data     = this._data = Cal.count(now),
-                hat      = Cal.human(data.curr.raw),
-                list     = nodes.items.list = [],
-                tmpl     = this._params.tmpl,
-                selected = this._nodes.items.alias,
-                holidays = this._holidays;
-
-            // Select tangled selection
-            if (this._tangled && this._tangled.instance._nodes.items.alias) {
-                tangled = this._tangled.instance._nodes.items.alias;
-                tmp     = tangled.split('-');
-
-                // Switch to the next or previous month if tangled selection is the first
-                // or the last day of month
-                if (tmp[0] == data.curr.year && tmp[1] == data.curr.month) {
-                    if (this._tangled.relation == '<' && tmp[2] == data.curr.end) {
-                        return this.next();
-                    } else if (this._tangled.relation == '>' && tmp[2] == 1) {
-                        return this.prev();
+                // Set events handlers
+                for (alias in this._handlers) {
+                    if (cal.addEventListener) {
+                        cal.addEventListener(
+                            alias,
+                            function(event) {
+                                self._live(alias, event);
+                            }
+                        );
+                    } else if (cal.attachEvent) {
+                        cal.attachEvent(
+                            'on' + alias,
+                            function() {
+                                self._live(alias, window.event);
+                            }
+                        );
                     }
                 }
-            }
 
-            // Clean previous calendar days
-            nodes.days.innerHTML = '';
+                return this;
+            },
+            /**
+             * Create a DOM for chosen month
+             *
+             * @private
+             *
+             * @this   {Cal}
+             * @param  {Boolean|Object}
+             * @returns {Cal}
+             */
+            _draw : function(dates) {
+                dates = dates || false;
 
-            // Set calendar`s hat value
-            nodes.month.innerHTML = this._tmpl(tmpl.hat, hat);
+                // Set dates for current month
+                this.set(dates);
 
-            // Days in past
-            year  = data.prev.year;
-            month = data.prev.month;
-            alias = year + '-' + month + '-';
-            check = Cal.inside(
-                new Date(
-                    year,
-                    month,
-                    data.prev.till
-                ),
-                min,
-                max
-            );
+                var
+                    check    = false,
+                    checked  = false,
+                    day      = 0,
+                    chosen   = 0,
+                    present  = 0,
+                    lang     = this._lang,
+                    data     = this._data,
+                    prev     = data.prev,
+                    curr     = data.curr,
+                    next     = data.next,
+                    moving   = this._moving,
+                    stable   = this._stable,
+                    holidays = this._loaded.holidays,
+                    min      = moving.min,
+                    now      = moving.now,
+                    max      = moving.max,
+                    nodes    = this._nodes,
+                    year     = curr.year,
+                    month    = curr.month,
+                    alias    = year + '-' + month + '-';
 
-            nodes.prev.title     = (check ? this._tmpl(tmpl.prev, this.human(data.prev.raw, this._lang)) : '');
-            nodes.prev.className = 'b-cal__prev' + (check ? '' : ' b-cal__prev_is_disabled');
+                // Set month name
+                nodes.days.innerHTML  = '';
+                nodes.month.innerHTML = lang.month[curr.month] +
+                                        ' ' +
+                                        curr.year;
 
-            for (day = data.prev.from; day <= data.prev.till; day++) {
-                holiday = Cal.holiday(year, month, day);
-
-                node = this._day2node(day, month, year, 'past', check, false, holiday, tangled);
-
-                nodes.days.appendChild(node);
-
-                nodes.items.list.push(node);
-            }
-
-            // Days in presence
-            year  = data.curr.year;
-            month = data.curr.month;
-            alias = year + '-' + month + '-';
-
-            for (day = data.curr.from; day <= data.curr.till; day++) {
-                choose  = false;
-                select  = false;
-                check   = this.inside(
-                    new Date(
-                        year,
-                        month,
-                        day
-                    ),
-                    min,
-                    max
-                );
-
-                holiday = Cal.holiday(year, month, day);
-
-                //
-                if (check && alias + day == origin) {
-                    choose = true;
+                // Get the current day
+                if (
+                    stable.now.getFullYear() == year &&
+                    stable.now.getMonth() == month
+                ) {
+                    present = stable.now.getDate();
                 }
 
-                //
-                if (alias + day == selected) {
-                    select = true;
+                // Get the chosen day
+                if (
+                    moving.chosen &&
+                    moving.chosen.month == month &&
+                    moving.chosen.year == year
+                ) {
+                    chosen = moving.chosen.day;
                 }
 
-                node = this._day2node(day, month, year, 'presence', check, choose, holiday, tangled);
+                // Create DOM for days in previous month
+                if (curr.beg > 1) {
+                    for (day = prev.from; day <= prev.till; day++) {
+                        node = document.createElement('div');
+                        node.innerHTML = day;
 
-                nodes.days.appendChild(node);
+                        if (this._inside(new Date(prev.year, prev.month, day), min, max)) {
+                            checked = true;
 
-                if (select) {
-                    node.click();
+                            node.className = 'b-cal__day b-cal__day_in_past';
+                        } else {
+                            node.className = 'b-cal__day b-cal__day_is_disabled';
+                        }
+
+                        if (holidays && holidays[prev.year + '-' + prev.month + day]) {
+                            node.className += ' b-cal__day_is_holiday';
+                        }
+
+                        nodes.days.appendChild(node);
+                    }
+                } else if (this._inside(new Date(prev.year, prev.month, prev.from), min, max)) {
+                    checked = true;
                 }
 
-                list.push(node);
-            }
+                if (checked) {
+                    nodes.prev.title     = lang.month[prev.month] +
+                                           ' ' +
+                                           prev.year;
+                    nodes.prev.className = 'b-cal__prev b-cal__prev_is_enabled';
 
-            // Days in future
-            year  = data.next.year;
-            month = data.next.month;
-            check = this.inside(
-                new Date(
-                    data.next.year,
-                    data.next.month,
-                    data.next.from
-                ),
-                min,
-                max,
-                true
-            );
-
-            nodes.next.title     = (check ? this._tmpl(tmpl.next, this.human(data.next.raw, this._lang)) : '');
-            nodes.next.className = 'b-cal__next' + (!check ? ' b-cal__next_is_disabled' : '');
-
-            for (day = data.next.from; day <= data.next.till; day++) {
-                holiday = Cal.holiday(year, month, day);
-
-                node = this._day2node(day, month, year, 'future', check, false, holiday, tangled);
-
-                nodes.days.appendChild(node);
-
-                list.push(node);
-            }
-
-            return true;
-        },
-        /**
-         * Create a node for day in calendar
-         *
-         * @private
-         *
-         * @this    {Cal}
-         * @param   {Number}
-         * @param   {Number}
-         * @param   {Number}
-         * @param   {String}
-         * @param   {Boolean}
-         * @param   {Boolean}
-         * @param   {String}
-         * @returns {DOMNode}
-         */
-        _day2node : function(day, month, year, when, check, choose, holiday, tangled) {
-            var
-                node  = document.createElement('div'),
-                items = this._nodes.items;
-
-            node.className = 'b-cal__day';
-            node.innerHTML = day;
-
-            //
-            if (when != 'presence' || choose) {
-                node.className += ' b-cal__day_in_' + when;
-            }
-
-            //
-            if (!check && !choose) {
-                node.className += ' b-cal__day_is_disabled';
-            } else {
-                node.className += ' b-cal__day_is_enabled';
-            }
-
-            //
-            if (holiday) {
-                node.className += ' b-cal__day_is_holiday';
-            }
-
-            if (year + '-' + month + '-' + day == tangled) {
-                node.className += ' b-cal__day_is_tangled';
-            }
-
-            //
-            node.setAttribute('data-month', month);
-            node.setAttribute('data-year',  year);
-            node.setAttribute('data-day',   day);
-
-            return node;
-        },
-        /**
-         * Create a vocabulary for .parse() method
-         *
-         * @private
-         *
-         * @this    {Cal}
-         * @returns {Object}
-         */
-        _monthes2replaces : function() {
-            var
-                pos     = 0,
-                end     = 0,
-                alias   = '',
-                out     = {},
-                pttp    = Cal.prototype,
-                piece   = null,
-                monthes = pttp._lang && pttp._lang.monthes ?
-                          pttp._lang.monthes :
-                          pttp._default.lang.monthes;
-
-            for (alias in monthes) {
-                piece = monthes[alias];
-                end   = piece.length;
-
-                for (pos = 0; pos < end; pos++) {
-                    out[piece[pos]] = pos;
-                    out[piece[pos].toLowerCase()] = pos;
+                    checked = false;
+                } else {
+                    nodes.prev.title     = '';
+                    nodes.prev.className = 'b-cal__prev b-cal__prev_is_disabled';
                 }
-            }
 
-            return out;
-        },
-        /**
-         * Bind events to the important nodes
-         *
-         * @private
-         *
-         * @this    {Cal}
-         * @returns {Cal}
-         */
-        _alive : function() {
-            var
-                self  = this,
-                block = this._nodes.block,
-                field = this._nodes.field;
+                // Create DOM for days in present month
+                for (day = curr.from; day <= curr.till; day++) {
+                    node  = document.createElement('div');
+                    check = this._inside(new Date(year, month, day), min, max);
 
-            // These handlers should be binded only if the field is given
-            if (field) {
-                // Turn off autocomplete
-                field.setAttribute('autocomplete', 'off');
+                    node.innerHTML = day;
 
-                // Close calendar on click ewerywhere
-                this._events.push(
-                    this._bind(document, 'click', function(event) {
-                        var
-                            node = event.target;
-    
-                        if (!node.className.match('b-cal') && node != field) {
-                            self.hide();
-                        }
-                    })
-                );
+                    if (chosen == day) {
+                        node.className = 'b-cal__day b-cal__day_is_chosen';
+                    } else if (present == day) {
+                        node.className = 'b-cal__day b-cal__day_in_presence';
+                    } else if (check) {
+                        node.className = 'b-cal__day b-cal__day_is_enabled';
+                    } else {
+                        node.className = 'b-cal__day b-cal__day_is_disabled';
+                    }
 
-                // Close calendar on ESC
-                this._events.push(
-                    this._bind(document, 'keydown', function(event) {
-                        if (event.keyCode == 27 && self.shown) {
-                            self.hide();
-                        }
-                    })
-                );
+                    if (holidays && holidays[alias + day]) {
+                        node.className += ' b-cal__day_is_holiday';
+                    }
 
-                // Catch keys in field
-                this._events.push(
-                    this._bind(field, 'keydown', function(event) {
-                        var
-                            code = event.keyCode;
+                    nodes.days.appendChild(node);
+                }
 
-                        if (!event.ctrlKey && !event.metaKey && !self.shown) {
-                            self.show();
+                // Create DOM for days in next month
+                if (next.till > 0) {
+                    for (day = next.from; day <= next.till; day++) {
+                        node = document.createElement('div');
+                        node.innerHTML = day;
+
+                        if (this._inside(new Date(next.year, next.month, day), min, max)) {
+                            checked = true;
+
+                            node.className = 'b-cal__day b-cal__day_in_future';
+                        } else {
+                            node.className = 'b-cal__day b-cal__day_is_disabled';
                         }
 
-                        switch (code) {
-                            
-
-                            // Filter keys
-                            case 9:
-                            case 16:
-                            case 17:
-                            case 18:
-                            case 20:
-                            case 27:
-                            case 37:
-                            case 38:
-                            case 39:
-                            case 224:
-                                return true;
-                            break;
-
-                            // Show on down arrow
-                            case 40:
-                                if (!self.shown) {
-                                    self.show();
-                                }
-                            break;
-
-                            // Close on Enter
-                            case 13:
-                                if (self.shown) {
-                                    event.preventDefault();
-                                    self.hide();
-                                }
-                            break;
-
-                            //
-                            default:
-                                if (self._timer) {
-                                    clearTimeout(self._timer);
-                                }
-
-                                setTimeout(self._proxy(self.jump, self), 300);
-                            break;
-
+                        if (holidays && holidays[next.year + '-' + next.month + '-' + day]) {
+                            node.className += ' b-cal__day_is_holiday';
                         }
-                    })
-                );
 
-                // Catch mousedown on field
-                this._events.push(
-                    this._bind(field, 'mousedown', function(event) {
-                        field.focus();
-                    })
-                );
+                        nodes.days.appendChild(node);
+                    }
+                }
 
-                // Catch focus on field
-                this._events.push(
-                    this._bind(field, 'focus', function(event) {
-                        if (!self.shown) {
-                            if (self._handlers.show) {
-                                self._handlers.show.call(
-                                    field,
-                                    event,
-                                    {
-                                        done : self._proxy(self.show, self),
-                                        hide : self._proxy(self.hide, self)
-                                    }
-                                );
-                            } else {
-                                self.show();
-                            }
-                        }
-                    })
-                );
+                if (checked) {
+                    nodes.next.title     = lang.month[next.month] +
+                                           ' ' +
+                                           next.year;
+                    nodes.next.className = 'b-cal__next b-cal__next_is_enabled';
+                } else {
+                    nodes.next.title     = '';
+                    nodes.next.className = 'b-cal__next b-cal__next_is_disabled';
+                }
+            },
+            /**
+             * Root handler for all events
+             *
+             * @private
+             *
+             * @this   {Cal}
+             * @param  {String}
+             * @param  {Event}
+             * @returns {Cal}
+             */
+            _live : function(alias, event) {
+                var
+                // I do really hate this browser
+                    opera = navigator.userAgent.match(/opera/ig) ?
+                            true :
+                            false;
 
-                // Catch focus on field
-                this._events.push(
-                    this._bind(field, 'click', function(event) {
-                        this.focus();
-                    })
-                );
+                if (!opera && event.srcElement) {
+                    event.target = event.srcElement;
+                }
 
-                // 
-                this._events.push(
-                    this._bind(field, 'click', function(event) {
-                        if (!self.shown && self.hiddenable) {
-                            if (self._handlers.show) {
-                                self._handlers.show.call(
-                                    block,
-                                    event,
-                                    {
-                                        done  : self._proxy(self.show,  self),
-                                        hide  : self._proxy(self.hide,  self),
-                                        reset : self._proxy(self.reset, self)
-                                    }
-                                );
-                            } else {
-                                self.show();
-                            }
-                        }
-                    })
-                );
-            }
+                if (!opera && event.target.nodeType == 3) {
+                    event.target = event.target.parentNode;
+                }
 
-            // 
-            this._events.push(
-                this._bind(block, 'click', function(event) {
-                    var
-                        pos      = 0,
-                        end      = 0,
-                        beg      = 0,
-                        day      = 0,
-                        year     = 0,
-                        month    = 0,
-                        tmp      = [],
-                        node     = event.target,
-                        switcher = node.className,
-                        data     = [],
-                        chosen   = self._nodes.items.chosen,
-                        aliase   = self._nodes.items.aliase,
-                        item     = null;
+                var
+                    curr  = this._data.curr,
+                    node  = event.target,
+                    cname = node.className,
+                    day   = node.innerHTML;
 
-                    switch (switcher) {
+                if (cname) {
+                    switch (cname) {
 
-                        //
-                        case 'b-cal__prev':
-                            self.prev();
+                        // Go to previous month
+                        case 'b-cal__prev b-cal__prev_is_enabled':
+                        case 'b-cal__day b-cal__day_in_past':
+                        case 'b-cal__day b-cal__day_in_past b-cal__day_is_holiday':
+                            this.prev();
                         break;
 
-                        //
-                        case 'b-cal__next':
-                            self.next();
+                        // Go to next month
+                        case 'b-cal__next b-cal__next_is_enabled':
+                        case 'b-cal__day b-cal__day_in_future':
+                        case 'b-cal__day b-cal__day_in_future b-cal__day_is_holiday':
+                            this.next();
                         break;
 
-                        //
+                        // Hide calendar
                         case 'b-cal__hide':
-                            self.hide();
+                            this.set().hide();
                         break;
 
-                        //
+                        // Choose day
                         case 'b-cal__day b-cal__day_is_enabled':
                         case 'b-cal__day b-cal__day_is_enabled b-cal__day_is_holiday':
-                        case 'b-cal__day b-cal__day_in_presence b-cal__day_is_enabled':
-                        case 'b-cal__day b-cal__day_in_presence b-cal__day_is_enabled b-cal__day_is_holiday':
-                            day   = node.getAttribute('data-day');
-                            year  = node.getAttribute('data-year');
-                            month = node.getAttribute('data-month');
-                            data  = {
-                                raw   : new Date(year, month, day),
-                                field : self._nodes.field
-                            };
+                        case 'b-cal__day b-cal__day_in_presence':
+                        case 'b-cal__day b-cal__day_in_presence b-cal__day_is_holiday':
+                            // Call user defined click handler
+                            this._handlers.click(
+                                                  event.target,
+                                                  event,
+                                                  new Date(
+                                                            curr.year,
+                                                            curr.month,
+                                                            day
+                                                          )
+                                                );
 
-                            data.human = self.human(data.raw, self._lang);
+                            // Set the chosen day
+                            this._moving.chosen = {
+                                                    year  : curr.year,
+                                                    month : curr.month,
+                                                    day   : day
+                                                  };
 
-                            self._nodes.items.clicked = node;
-
-                            self._nodes.field.value = self._tmpl(
-                                self._params.tmpl.stdout,
-                                self.human(data.raw, self._lang)
-                            );
-
-                            if (self._handlers.select) {
-                                self._handlers.select.call(
-                                    node,
-                                    event,
-                                    {
-                                        hide   : self._proxy(self._hide,    self),
-                                        done   : self._proxy(self.select,   self),
-                                        reset  : self._proxy(self.reset,    self),
-                                        undone : self._proxy(self.deselect, self)
-                                    },
-                                    data
-                                );
-                            } else {
-                                self.select();
-                            }
-                        break;
-
-                        //
-                        case 'b-cal__day b-cal__day_is_enabled b-cal__day_is_chosen':
-                        case 'b-cal__day b-cal__day_is_enabled b-cal__day_is_holiday b-cal__day_is_chosen':
-                        case 'b-cal__day b-cal__day_in_presence b-cal__day_is_enabled b-cal__day_is_chosen':
-                        case 'b-cal__day b-cal__day_in_presence b-cal__day_is_enabled b-cal__day_is_holiday b-cal__day_is_chosen':
-                            self._nodes.items.clicked = node;
-
-                            if (self._handlers.deselect) {
-                                self._handlers.deselect.call(
-                                    node,
-                                    event,
-                                    {
-                                        done  : self._proxy(self.deselect, self),
-                                        hide  : self._proxy(self._hide,    self),
-                                        reset : self._proxy(self.reset,    self)
-                                    }
-                                );
-                            } else {
-                                self.deselect();
-                            }
+                            // Draw a calendar with new settings
+                            this._draw({
+                                now : new Date(curr.year, curr.month, day)
+                            });
                         break;
 
                     }
-                })
-            );
-
-            return this;
-        },
-        /**
-         * Templates engine
-         *
-         * @private
-         *
-         * @this    {Cal}
-         * @param   {String}
-         * @param   {Object}
-         * @returns {String}
-         */
-        _tmpl : function(tmpl, data) {
-            data = data || {};
-
-            tmpl = tmpl
-                   .replace(/\{\{ ?/g, "';out+=data.")
-                   .replace(/ ?\}\}/g, ";out+='");
-/*
-                    TODO:
-
-                   .replace(/\{% if ?([^ %]*) ?%\}/ig,      "';if(data.$1){out+='")
-                   .replace(/\{% else if ?([^ %]*) ?%\}/ig, "';}else if(data.$1){out+='")
-                   .replace(/\{% else ?%\}/ig,              "';}else{out+='")
-                   .replace(/\{% ?endif ?%\}/ig,            "';}out+='")
-*/
-            tmpl = "(function(){var out = '" + tmpl + "';return out;})();";
-
-            return eval(tmpl);
-        },
-        /**
-         * Fix for IE8 .indexOf
-         *
-         * @private
-         *
-         * @this    {Cal}
-         * @param   {String}
-         * @param   {Array}
-         * @returns {Number|String}
-         */
-        _indexof : function(pin, hay) {
-            // Arrays and Objects allowed only
-            if (!hay || typeof hay != 'object') {
-                return -1;
-            }
-
-            var
-                stalk = 0;
-
-            // Try to use a normal indexOf if it`s possible
-            if (hay.indexOf) {
-                return hay.indexOf(pin);
-            }
-
-            // Hack for an array in IE8 or for an object
-            for (stalk in hay) {
-                if (hay[stalk] == pin) {
-                    return stalk;
                 }
-            }
+            },
+            /**
+             * Set the stable calendar settings
+             *
+             * @this   {Cal}
+             * @param  {Object}
+             * @returns {Cal}
+             */
+            preset : function(dates) {
+                dates = dates || {};
 
-            return -1;
-        },
-        /**
-         * Bind an event
-         *
-         * @private
-         *
-         * @this    {Cal}
-         * @param   {DOMNode}
-         * @param   {String}
-         * @param   {Function}
-         * @returns {Object}
-         */
-        _bind : function(target, alias, handler) {
-            var
-                prefix  = '',
-                wrapper = '',
-                self    = this,
-                event   = null,
-                out     = {
-                    alias   : alias,
-                    target  : target,
-                    handler : function(event) {
-                        event = self._eventize(event);
-
-                        handler(event);
-                    }
-                };
-
-            if (target.addEventListener) {
-                wrapper = 'addEventListener';
-            } else if (target.attachEvent) {
-                prefix  = 'on';
-                wrapper = 'attachEvent';
-            }
-
-            //
-            target[wrapper](
-                prefix + alias,
-                out.handler
-            );
-
-            return out;
-        },
-        /**
-         * Unbind an event
-         *
-         * @private
-         *
-         * @this    {Suggest}
-         * @param   {DOMNode}
-         * @param   {String}
-         * @param   {Function}
-         * @returns {Object}
-         */
-        _unbind : function(target, alias, handler) {
-            var
-                prefix  = '',
-                wrapper = '';
-
-            if (target.removeEventListener) {
-                wrapper = 'removeEventListener';
-            } else if (target.detachEvent) {
-                prefix  = 'on';
-                wrapper = 'detachEvent';
-            }
-
-            target[wrapper](
-                prefix + alias,
-                handler
-            );
-        },
-        /**
-         * Get an offset for chosen elements
-         *
-         * @private
-         *
-         * @this    {Suggest}
-         * @param   {DOMNode}
-         * @param   {DOMNode}
-         * @returns {Object}
-         */
-        _offsetize : function(from, till) {
-            till = till || document.body;
-
-            var
-                node     = from,
-                view     = document.defaultView,
-                computed = null,
-                offset   = {
-                    top    : node.offsetTop,
-                    left   : node.offsetLeft,
-                    width  : node.offsetWidth,
-                    height : node.offsetHeight
-                };
-
-            while (node.offsetParent && node != till) {
-
-                node     = node.offsetParent;
-                computed = (view && view.getComputedStyle != 'undefined') ?
-                           view.getComputedStyle(node, null) :
-                           node.currentStyle;
-
-                if (computed.paddingTop) {
-                    offset.top -= (computed.paddingTop.replace('px', '') - 0);
-                }
-
-                offset.top  += node.offsetTop;
-                offset.left += node.offsetLeft;
-            }
-
-            if (node.offsetParent) {
-                computed = (view && view.getComputedStyle != 'undefined') ?
-                           view.getComputedStyle(node.offsetParent, null) :
-                           node.offsetParent.currentStyle;
-
-                if (computed.paddingTop) {
-                    offset.top -= (computed.paddingTop.replace('px', '') - 0);
-                }
-            }
-
-            return offset;
-        },
-        /**
-         * Normalize an event object
-         *
-         * @this    {Suggest}
-         * @param   {Event}
-         * @returns {Event}
-         */
-        _eventize : function(event) {
-            event = event || window.event;
-
-            var
-                // I do really hate this browser
-                opera = navigator.userAgent.match(/opera/ig) ?
-                        true :
-                        false,
-                type  = event.type;
-
-            // Events hacks for older browsers
-            if (!opera && event.srcElement) {
-                event.target = event.srcElement;
-            }
-
-            if (!opera && event.target.nodeType == 3) {
-                event.target = event.target.parentNode;
-            }
-
-            // Keycode
-            if (
-                type == 'keypress' ||
-                type == 'keydown' ||
-                type == 'keyup'
-            ) {
-                if (!event.keyCode && event.which) {
-                    event.keyCode = event.which;
-                }
-            }
-
-            // Stop bubbling
-            if (!opera && !event.stopPropagation) {
-                event.stopPropagation = function() {
-                    this.cancelBubble = true;
-                };
-            }
-
-            // Prevent default action
-            if (!opera && !event.preventDefault) {
-                event.preventDefault = function() {
-                    this.returnValue = false;
-                };
-            }
-
-            return event;
-        },
-        /**
-         * Save a needed context for further function execution
-         *
-         * @this    {Suggest}
-         * @param   {Function}
-         * @param   {Object}
-         * @param   {Array}
-         * @returns {Function}
-         */
-        _proxy : function(fn, ctx) {
-            return function() {
                 var
-                    args = arguments;
+                    tmp  = [],
+                    tmpl = {
+                             now : new Date(),
+                             min : null,
+                             max : null
+                           };
 
-                return fn.apply(ctx, args);
+                // Default minimal date
+                tmpl.min = new Date(
+                                     tmpl.now.getFullYear(),
+                                     tmpl.now.getMonth(),
+                                     tmpl.now.getDate() - 1
+                                   );
+
+                // Default maximal date
+                tmpl.max = new Date(
+                                     tmpl.now.getFullYear() + 1,
+                                     tmpl.now.getMonth(),
+                                     tmpl.now.getDate()
+                                   );
+
+                // Save values
+                for (alias in this._stable) {
+                    if (dates[alias]) {
+                        tmp = dates[alias].split(' ');
+
+                        this._stable[alias] = new Date(tmp[0], tmp[1] - 1, tmp[2]);
+                    } else {
+                        this._stable[alias] = tmpl[alias];
+                    }
+                }
+
+                return this;
+            },
+            /**
+             * An alias for Cal.set() method without params
+             *
+             * @this   {Cal}
+             * @returns {Cal}
+             */
+            reset : function() {
+                return this.set();
+            },
+            /**
+             * Set the moving calendar settings
+             *
+             * @this   {Cal}
+             * @param  {Object}
+             * @returns {Cal}
+             */
+            set : function(dates) {
+                var
+                    moving = this._moving,
+                    stable = this._stable,
+                    from   = dates || {};
+
+                // Clear chosen
+                if (!dates && moving.chosen) {
+                    delete moving.chosen;
+                }
+
+                // Save values
+                for (alias in moving) {
+                    if (from[alias]) {
+                        moving[alias] = from[alias];
+                    } else if (!dates) {
+                        moving[alias] = stable[alias];
+                    }
+                }
+
+                // Count new values for calendar
+                this._count();
+
+                return this;
+            },
+            /**
+             * Params loader
+             *
+             * @this   {Cal}
+             * @param  {Boolean|String}
+             * @param  {Number|String|Array|Object}
+             * @param  {Boolean|Function}
+             * @returns {Cal}
+             */
+            load : function(alias, data, callback) {
+                alias    = alias    || false;
+                data     = data     || false;
+                callback = callback || false;
+
+                //
+                if (data) {
+                    if (typeof this['_' + alias] == 'function') {
+
+                        this['_' + alias](data);
+                    } else {
+                        this._loaded[alias] = data;
+                    }
+                }
+
+                return this;
+            },
+            /**
+             * Set holidays
+             *
+             * @this   {Cal}
+             * @param  {Array}
+             * @returns {Cal}
+             */
+            _holidays : function(dates) {
+                dates = dates && dates.length ? dates : [];
+
+                var
+                    pos      = 0,
+                    end      = dates.length,
+                    raw      = [],
+                    holidays = null;
+
+                // Clean previous holidays
+                 this._loaded.holidays = holidays = {};
+
+                // Set new holidays
+                for (pos = 0; pos < end; pos++) {
+                    raw = dates[pos].split('-');
+                    raw[1] -= 1;
+                    raw[2] -= 0;
+                    raw = raw.join('-');
+
+                    holidays[raw] = true;
+                }
+
+                return this;
+            },
+            /**
+             * Show calendar
+             *
+             * @this   {Cal}
+             * @param  {Boolean|String|Object}
+             * @param  {Boolean|Object}
+             * @param  {Boolean|String}
+             * @returns {Cal}
+             */
+            show : function(dates, move, id) {
+                id    = id    || false;
+                move  = move  || false;
+                dates = dates || false;
+
+                //
+                if (typeof dates == 'string') {
+                    id    = dates;
+                    dates = null;
+                }
+
+                if (id) {
+                    this._id = id;
+                }
+
+                this._draw(dates);
+
+                this._nodes.cal.className = 'b-cal b-cal_is_visible' +
+                                            (this._id ? ' b-cal_id_' + this._id : '');
+
+                this.shown = true;
+
+                if (move) {
+                    this._nodes.cal.style.top  = move.y + 'px';
+                    this._nodes.cal.style.left = move.x + 'px';
+                }
+
+                return this;
+            },
+            /**
+             * Hide calendar
+             *
+             * @this   {Cal}
+             * @returns {Cal}
+             */
+            hide : function() {
+                this._nodes.cal.className = 'b-cal';
+
+                this.shown = false;
+
+                return this;
+            },
+            /**
+             * Go to the previous month
+             *
+             * @this   {Cal}
+             * @returns {Cal}
+             */
+            prev : function() {
+                var
+                    prev = this._data.prev;
+
+                if (prev) {
+                    this
+                    .show({now : new Date(prev.year, prev.month, 1)}, false, this._id);
+                }
+
+                return this;
+            },
+            /**
+             * Go to the next month
+             *
+             * @this   {Cal}
+             * @returns {Cal}
+             */
+            next : function() {
+                var
+                    next = this._data.next;
+
+                if (next) {
+                    this
+                    .show({now : new Date(next.year, next.month, 1)}, false, this._id);
+                }
+
+                return this;
+            },
+            /**
+             * Return minimal date
+             *
+             * @this   {Cal}
+             * @returns {Date}
+             */
+            min : function() {
+                var
+                    min = this._stable.min;
+
+                return new Date(min.getFullYear(), min.getMonth(), min.getDate() + 1);
+            },
+            /**
+             * Return maximal date
+             *
+             * @this   {Cal}
+             * @returns {Date}
+             */
+            max : function() {
+                var
+                    max = this._stable.max;
+
+                return new Date(max.getFullYear(), max.getMonth(), max.getDate() - 1);
             }
-        }
-    };
+        };
 
 
-    // Aliases for «static» functions
-    Cal.lang     = Cal.prototype.lang;
-    Cal.human    = Cal.prototype.human;
-    Cal.order    = Cal.prototype.order;
-    Cal.count    = Cal.prototype.count;
-    Cal.parse    = Cal.prototype.parse;
-    Cal.inside   = Cal.prototype.inside;
-    Cal.weekend  = Cal.prototype.weekend;
-    Cal.holiday  = Cal.prototype.holiday;
-    Cal.holidays = Cal.prototype.holidays;
-
-
-    //
-    return Cal;
+    // Go to global scope
+    if (window.OAF) {
+        window.OAF.prototype.modules.Cal = Cal;
+    } else {
+        window.Cal = Cal;
+    }
 
 
 })();
