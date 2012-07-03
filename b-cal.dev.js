@@ -148,6 +148,19 @@
             // Setup language settings
             Cal.lang(params.lang);
 
+            /**
+             * The way calendar should work with the field node
+             *
+             * @private
+             */
+             if (field) {
+                 if (field.innerHTML) {
+                     this._way = 'innerHTML';
+                 } else {
+                     this._way = 'value';
+                 }
+             }
+
             // Setup templates
             if (!params.tmpl) {
                 params.tmpl = {};
@@ -247,13 +260,13 @@
                     params.default_stdout = Cal.parse(params.default_stdout);
                 }
 
-                this._nodes.field.value = this._tmpl(
+                this._nodes.field[this._way] = this._tmpl(
                     params.tmpl.stdout,
                     Cal.human(params.default_stdout)
                 );
 
                 if (params.mirror) {
-                    params.mirror.value = this._tmpl(
+                    params.mirror[this._way] = this._tmpl(
                         params.tmpl.mirror,
                         Cal.human(params.default_stdout)
                     );
@@ -291,7 +304,13 @@
              *
              * @private
              */
-            this._params = params;
+            this._params = {};
+
+            for (alias in params) {
+                if (alias != 'lang') {
+                    this._params[alias] = params[alias];
+                }
+            }
 
             /**
              * Saved user handlers
@@ -393,8 +412,8 @@
             }
 
             // Try to read a date from field
-            if (field && field.value != '') {
-                now = Cal.parse(field.value);
+            if (field && field[this._way] != '') {
+                now = Cal.parse(field[this._way]);
             } else {
                 now = this._params.now_date;
             }
@@ -403,7 +422,7 @@
             this.shown = true;
 
             // Draw DOM for a chosen calendar
-            this._draw(now, min, max);
+            this._draw(now);
 
             // Apply offset properties
             if (ignore != 'top') {
@@ -472,11 +491,12 @@
             to = to || false;
 
             var
-                val  = this._nodes.field.value,
-                type = typeof to,
-                min  = this._min,
-                max  = this._max,
-                raw  = null;
+                val   = this._nodes.field[this._way],
+                type  = typeof to,
+                min   = this._min,
+                max   = this._max,
+                raw   = null,
+                node  = null;
 
             if (type == 'object') {
                 raw = to;
@@ -492,7 +512,7 @@
                 raw = max;
             }
 
-            this._draw(raw);
+            this._draw(raw, true);
 
             return this;
         },
@@ -586,6 +606,7 @@
          */
         select : function() {
             var
+                stay     = false,
                 day      = 0,
                 year     = 0,
                 month    = 0,
@@ -595,6 +616,7 @@
                 tmp      = null,
                 field    = null,
                 check    = null,
+                human    = null,
                 items    = this._nodes.items,
                 alias    = items.alias,
                 chosen   = items.chosen,
@@ -604,6 +626,12 @@
             // Remove selection from previous selected item
             if (chosen) {
                 chosen.className = chosen.className.replace(' b-cal__day_is_chosen', '');
+
+                if (chosen.getAttribute('data-stay')) {
+                    stay = true;
+
+                    chosen.removeAttribute('data-stay');
+                }
             }
 
             // Select new item
@@ -618,16 +646,35 @@
 
             chosen.className += ' b-cal__day_is_chosen';
 
+            human  = Cal.human(tmp);
+            field  = this._nodes.field;
+            mirror = this._params.mirror;
+
+            // Set date to a main fields
+            if (field) {
+                field[this._way] = this._tmpl(
+                    this._params.tmpl.stdout,
+                    human
+                );
+
+                if (mirror) {
+                    mirror[this._way] = this._tmpl(
+                        this._params.tmpl.mirror,
+                        human
+                    );
+                }   
+            }
+
             // Move range in tied calendar instance
             if (this._tangled) {
                 instance = this._tangled.instance;
                 relation = this._tangled.relation;
                 field    = instance._nodes.field;
                 mirror   = instance._params.mirror;
-                check    = field.value != '' ? Cal.parse(field.value) : null;
+                check    = field[this._way] != '' ? Cal.parse(field[this._way]) : null;
 
                 if (relation == '>') {
-                    max = instance.max();
+                    max = this._max;
 
                     if (tmp >= max) {
                         check = max;
@@ -645,10 +692,10 @@
                     }
 
                     instance.min(tmp);
-                    instance.show();
+                    field.focus();
                     instance.jump(tmp);
                 } else if (relation == '<') {
-                    min = instance.min();
+                    min = this._min;
 
                     if (tmp <= min) {
                         check = min;
@@ -667,18 +714,19 @@
 
                     instance.max(tmp);
                 }
-                // Save date to a main field
+                // Save date to a tangled fields
                 if (field && check) {
-                    field.value = this._tmpl(
+                    human = Cal.human(check);
+
+                    field[this._way] = this._tmpl(
                         instance._params.tmpl.stdout,
-                        Cal.human(check)
+                        human
                     );
 
-                    // Save date to a secondary field
                     if (mirror) {
-                        mirror.value = this._tmpl(
+                        mirror[this._way] = this._tmpl(
                             instance._params.tmpl.mirror,
-                            Cal.human(check)
+                            human
                         );
                     }
                 }
@@ -1301,35 +1349,39 @@
          *
          * @this    {Cal}
          * @param   {Date}
+         * @param   {Boolean}
          * @returns {Cal}
          */
-        _draw : function(now) {
+        _draw : function(now, pre) {
+            pre = pre || false;
+
             var
-                check    = false,
-                choose   = false,
-                select   = false,
-                holiday  = false,
-                day      = 0,
-                year     = 0,
-                month    = 0,
-                alias    = '',
-                origin   = this._now.getFullYear() +
-                           '-' +
-                           this._now.getMonth() +
-                           '-' +
-                           this._now.getDate(),
-                tangled  = '',
-                min      = this._min,
-                max      = this._max,
-                tmp      = null,
-                node     = null,
-                nodes    = this._nodes,
-                data     = this._data = Cal.count(now),
-                hat      = Cal.human(data.curr.raw),
-                list     = nodes.items.list = [],
-                tmpl     = this._params.tmpl,
-                selected = this._nodes.items.alias,
-                holidays = this._holidays;
+                check     = false,
+                choose    = false,
+                select    = false,
+                holiday   = false,
+                day       = 0,
+                year      = 0,
+                month     = 0,
+                alias     = '',
+                origin    = this._now.getFullYear() + '-' +
+                            this._now.getMonth() + '-' +
+                            this._now.getDate(),
+                preorigin = now.getFullYear() + '-' +
+                            now.getMonth() + '-' +
+                            now.getDate(),
+                tangled   = '',
+                min       = this._min,
+                max       = this._max,
+                tmp       = null,
+                node      = null,
+                nodes     = this._nodes,
+                data      = this._data = Cal.count(now),
+                hat       = Cal.human(data.curr.raw),
+                list      = nodes.items.list = [],
+                tmpl      = this._params.tmpl,
+                selected  = this._nodes.items.alias,
+                holidays  = this._holidays;
 
             // Select tangled selection
             if (this._tangled && this._tangled.instance._nodes.items.alias) {
@@ -1406,7 +1458,7 @@
                 }
 
                 //
-                if (alias + day == selected) {
+                if (alias + day == selected || pre && alias + day == preorigin) {
                     select = true;
                 }
 
@@ -1415,6 +1467,7 @@
                 nodes.days.appendChild(node);
 
                 if (select) {
+                    node.setAttribute('data-stay', 'on');
                     node.click();
                 }
 
@@ -1584,7 +1637,6 @@
                         }
 
                         switch (code) {
-                            
 
                             // Filter keys
                             case 9:
@@ -1621,7 +1673,7 @@
                                     clearTimeout(self._timer);
                                 }
 
-                                setTimeout(self._proxy(self.jump, self), 300);
+                                self._timer = setTimeout(self._proxy(self.jump, self), 500);
                             break;
 
                         }
@@ -1631,7 +1683,9 @@
                 // Catch mousedown on field
                 this._events.push(
                     this._bind(field, 'mousedown', function(event) {
-                        field.focus();
+                        if (!self.shown) {
+                            field.focus();
+                        }
                     })
                 );
 
@@ -1688,18 +1742,13 @@
             this._events.push(
                 this._bind(block, 'click', function(event) {
                     var
-                        pos      = 0,
-                        end      = 0,
                         beg      = 0,
                         day      = 0,
                         year     = 0,
                         month    = 0,
-                        tmp      = [],
                         node     = event.target,
                         switcher = node.className,
                         data     = [],
-                        chosen   = self._nodes.items.chosen,
-                        aliase   = self._nodes.items.aliase,
                         item     = null;
 
                     switch (switcher) {
@@ -1739,20 +1788,6 @@
                             data.human = self.human(data.raw, self._lang);
 
                             self._nodes.items.clicked = node;
-
-                            // Set date to a main field
-                            self._nodes.field.value = self._tmpl(
-                                self._params.tmpl.stdout,
-                                self.human(data.raw)
-                            );
-
-                            // Sed date to a secondary field
-                            if (self._params.mirror) {
-                                self._params.mirror.value = self._tmpl(
-                                    self._params.tmpl.mirror,
-                                    self.human(data.raw)
-                                );
-                            }
 
                             if (self._handlers.select) {
                                 self._handlers.select.call(
