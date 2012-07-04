@@ -153,13 +153,20 @@
              *
              * @private
              */
-             if (field) {
-                 if (field.innerHTML) {
-                     this._way = 'innerHTML';
-                 } else {
-                     this._way = 'value';
-                 }
-             }
+            if (field) {
+                if (field.innerHTML) {
+                    this._way = 'innerHTML';
+                } else {
+                    this._way = 'value';
+                }
+            }
+
+            /**
+             * Don`t hide calendar on blur
+             *
+             * @private
+             */
+            this._hold = false;
 
             // Setup templates
             if (!params.tmpl) {
@@ -338,7 +345,9 @@
                     '_min',
                     '_now',
                     '_max',
+                    '_way',
                     'shown',
+                    '_hold',
                     '_data',
                     '_nodes',
                     '_events',
@@ -662,7 +671,7 @@
                         this._params.tmpl.mirror,
                         human
                     );
-                }   
+                }
             }
 
             // Move range in tied calendar instance
@@ -672,6 +681,11 @@
                 field    = instance._nodes.field;
                 mirror   = instance._params.mirror;
                 check    = field[this._way] != '' ? Cal.parse(field[this._way]) : null;
+
+                //
+                if (self._hold) {
+                    self._hold = false;
+                }
 
                 if (relation == '>') {
                     max = this._max;
@@ -692,7 +706,7 @@
                     }
 
                     instance.min(tmp);
-                    field.focus();
+                    instance.show();
                     instance.jump(tmp);
                 } else if (relation == '<') {
                     min = this._min;
@@ -1684,7 +1698,31 @@
                 this._events.push(
                     this._bind(field, 'mousedown', function(event) {
                         if (!self.shown) {
-                            field.focus();
+                            if (self._handlers.show) {
+                                self._handlers.show.call(
+                                    field,
+                                    event,
+                                    {
+                                        done : self._proxy(self.show, self),
+                                        hide : self._proxy(self.hide, self)
+                                    }
+                                );
+                            } else {
+                                self.show();
+                            }
+                        }
+                    })
+                );
+
+                // Catch blur on field
+                this._events.push(
+                    this._bind(field, 'blur', function(event) {
+                        if (self.shown && !self._hold) {
+                            self.hide();
+                        }
+
+                        if (self._hold) {
+                            self._hold = false;
                         }
                     })
                 );
@@ -1709,14 +1747,7 @@
                     })
                 );
 
-                // Catch focus on field
-                this._events.push(
-                    this._bind(field, 'click', function(event) {
-                        this.focus();
-                    })
-                );
-
-                // 
+                // Catch click on field
                 this._events.push(
                     this._bind(field, 'click', function(event) {
                         if (!self.shown && self.hiddenable) {
@@ -1737,6 +1768,26 @@
                     })
                 );
             }
+
+            // 
+            this._events.push(
+                this._bind(block, 'mousemove', function(event) {
+                    if (self._timer) {
+                        clearTimeout(self._timer);
+                    }
+
+                    self._hold = true;
+                })
+            );
+
+            // 
+            this._events.push(
+                this._bind(block, 'mouseout', function(event) {
+                    self._timer = setTimeout(function() {
+                        self._hold = false;
+                    }, 150);
+                })
+            );
 
             // 
             this._events.push(
