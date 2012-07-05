@@ -180,14 +180,12 @@
             }
 
             // Setup minimal date
-            if (!params.min_date) {
-                params.min_date = new Date(
-                    pure.getFullYear(),
-                    pure.getMonth(),
-                    pure.getDate() - 1
-                );
-            } else if (typeof params.min_date == 'string') {
-                params.min_date = Cal.parse(params.min_date);
+            if (params.min_date) {
+                if (typeof params.min_date == 'string') {
+                    params.min_date = Cal.parse(params.min_date);
+                }
+            } else {
+                params.min_date = new Date(pure);
             }
 
             /**
@@ -195,13 +193,16 @@
              *
              * @private
              */
-            this._min = params.min_date;
+            this._min = new Date(params.min_date);
+            this._min.setDate(this._min.getDate() - 1);
 
             // Setup current date
-            if (!params.now_date) {
-                params.now_date = pure;
-            } else if (typeof params.now_date == 'string') {
-                params.now_date = Cal.parse(params.now_date);
+            if (params.now_date) {
+                if (typeof params.now_date == 'string') {
+                    params.now_date = Cal.parse(params.now_date);
+                }
+            } else {
+                params.now_date = new Date(pure);
             }
 
             /**
@@ -212,14 +213,13 @@
             this._now = params.now_date;
 
             // Setup maximal date
-            if (!params.max_date) {
-                params.max_date = new Date(
-                    pure.getFullYear() + 1,
-                    pure.getMonth(),
-                    pure.getDate()
-                );
-            } else if (typeof params.max_date == 'string') {
-                params.max_date = Cal.parse(params.max_date);
+            if (params.max_date) {
+                if (typeof params.max_date == 'string') {
+                    params.max_date = Cal.parse(params.max_date);
+                }
+            } else {
+                params.max_date = new Date(pure);
+                params.max_date.setYear(pure.getFullYear() + 1);
             }
 
             /**
@@ -227,7 +227,8 @@
              *
              * @private
              */
-            this._max = params.max_date;
+            this._max = new Date(params.max_date);
+            this._max.setDate(this._max.getDate() + 1);
 
             /**
              * Dates, saved between the calendar calls
@@ -616,136 +617,120 @@
         select : function() {
             var
                 stay     = false,
+                show     = false,
                 day      = 0,
                 year     = 0,
                 month    = 0,
-                relation = '',
-                min      = null,
-                max      = null,
+                raw1     = null,
+                raw2     = null,
                 tmp      = null,
-                field    = null,
-                check    = null,
                 human    = null,
                 items    = this._nodes.items,
-                alias    = items.alias,
+                field    = this._nodes.field,
+                params   = this._params,
+                tmpl     = params.tmpl,
+                mirror   = params.mirror,
                 chosen   = items.chosen,
                 clicked  = items.clicked,
-                instance = null;
+                tangled  = this._tangled,
+                relation = tangled ? tangled.relation : null,
+                instance = tangled ? tangled.instance : null;
 
-            // Remove selection from previous selected item
+            // Remove selection from the previous selected item
             if (chosen) {
                 chosen.className = chosen.className.replace(' b-cal__day_is_chosen', '');
-
-                if (chosen.getAttribute('data-stay')) {
-                    stay = true;
-
-                    chosen.removeAttribute('data-stay');
-                }
             }
 
-            // Select new item
+            // Set the selection to the currently selected item
             chosen = items.chosen = clicked;
-            day    = chosen.getAttribute('data-day') - 0;
-            year   = chosen.getAttribute('data-year') - 0;
-            month  = chosen.getAttribute('data-month') - 0;
-            tmp    = new Date(year, month, day);
-            alias  = items.alias = year + '-' +
-                                   month + '-' +
-                                   day;
-
             chosen.className += ' b-cal__day_is_chosen';
 
-            human  = Cal.human(tmp);
-            field  = this._nodes.field;
-            mirror = this._params.mirror;
+            // Get the chosen date raw and human objects
+            day   = chosen.getAttribute('data-day') - 0;
+            year  = chosen.getAttribute('data-year') - 0;
+            month = chosen.getAttribute('data-month') - 0;
+            raw1  = new Date(year, month, day);
+            alias = items.alias = year + '-' +
+                                  month + '-' +
+                                  day;
 
-            // Set date to a main fields
-            if (field) {
-                field[this._way] = this._tmpl(
-                    this._params.tmpl.stdout,
-                    human
-                );
+            // Set values into tangled calendar`s fields
+            if (tangled) {
+                items  = instance._nodes.items;
+                tmpl   = instance._params.tmpl;
+                raw2   = items.chosen ?
+                         new Date(
+                             items.chosen.getAttribute('data-year'),
+                             items.chosen.getAttribute('data-month'),
+                             items.chosen.getAttribute('data-day')
+                         ) :
+                         instance._now;
+                if (relation == '>') {
+                    // Tangled calendar is larger
+                    if (raw1 >= raw2) {
+                        show = true;
+                        raw2 = new Date(raw1);
+                        raw2.setDate(raw2.getDate() + 1);
+                    }
 
-                if (mirror) {
-                    mirror[this._way] = this._tmpl(
-                        this._params.tmpl.mirror,
-                        human
-                    );
+                    if (params.block_range) {
+                        instance.min(tmp);
+                    }
+                } else if (relation == '<') {
+                    // Tangled calendar is smaller
+                    if (raw1 <= raw2) {
+                        show = true;
+                        raw2 = new Date(raw1);
+                        raw1.setDate(raw1.getDate() + 1);
+                    }
+
+                    if (params.block_range) {
+                        instance.max(tmp);
+                    }
                 }
-            }
 
-            // Move range in tied calendar instance
-            if (this._tangled) {
-                instance = this._tangled.instance;
-                relation = this._tangled.relation;
-                field    = instance._nodes.field;
-                mirror   = instance._params.mirror;
-                check    = field[this._way] != '' ? Cal.parse(field[this._way]) : null;
+                // 
+                this.hide();
+
+                instance.jump(raw2);
 
                 //
-                if (self._hold) {
-                    self._hold = false;
-                }
+                human = Cal.human(raw1);
 
-                if (relation == '>') {
-                    max = this._max;
-
-                    if (tmp >= max) {
-                        check = max;
-                        tmp   = new Date(
-                            check.getFullYear(),
-                            check.getMonth(),
-                            check.getDate() - 1
-                        );
-                    } else if (tmp >= check) {
-                        check = new Date(
-                            tmp.getFullYear(),
-                            tmp.getMonth(),
-                            tmp.getDate() + 1
-                        );
-                    }
-
-                    instance.min(tmp);
-                    instance.show();
-                    instance.jump(tmp);
-                } else if (relation == '<') {
-                    min = this._min;
-
-                    if (tmp <= min) {
-                        check = min;
-                        tmp = new Date(
-                            check.getFullYear(),
-                            check.getMonth(),
-                            check.getDate() + 1
-                        );
-                    } else if (tmp <= check) {
-                        check = new Date(
-                            tmp.getFullYear(),
-                            tmp.getMonth(),
-                            tmp.getDate() - 1
-                        );
-                    }
-
-                    instance.max(tmp);
-                }
-                // Save date to a tangled fields
-                if (field && check) {
-                    human = Cal.human(check);
-
-                    field[this._way] = this._tmpl(
-                        instance._params.tmpl.stdout,
-                        human
-                    );
+                // Set the selected date into fields
+                if (field) {
+                    field[this._way] = this._tmpl(tmpl.stdout, human);
 
                     if (mirror) {
-                        mirror[this._way] = this._tmpl(
-                            instance._params.tmpl.mirror,
-                            human
-                        );
+                        mirror.value = this._tmpl(tmpl.mirror, human);
                     }
                 }
 
-                this.hide();
+                // Reset the mousemove event indicator
+                if (this._hold) {
+                    this._hold = false;
+                }
+
+                // Reset the mouseout event timer
+                if (this._timer) {
+                    clearTimeout(this._timer);
+                }
+
+                human  = Cal.human(raw2);
+                field  = instance._nodes.field;
+                mirror = instance._params.mirror;
+
+                if (field) {
+                    field[this._way] = this._tmpl(tmpl.stdout, human);
+
+                    if (mirror) {
+                        mirror.value = this._tmpl(tmpl.mirror, human);
+                    }
+
+                    if (show) {
+                        field.focus();
+                    }
+                }
             }
 
             return this;
@@ -1455,11 +1440,7 @@
                 choose  = false;
                 select  = false;
                 check   = this.inside(
-                    new Date(
-                        year,
-                        month,
-                        day
-                    ),
+                    new Date(year, month, day),
                     min,
                     max
                 );
@@ -1472,18 +1453,13 @@
                 }
 
                 //
-                if (alias + day == selected || pre && alias + day == preorigin) {
+                if (alias + day == selected && pre && alias + day == preorigin) {
                     select = true;
                 }
 
                 node = this._day2node(day, month, year, 'presence', check, choose, holiday, tangled);
 
                 nodes.days.appendChild(node);
-
-                if (select) {
-                    node.setAttribute('data-stay', 'on');
-                    node.click();
-                }
 
                 list.push(node);
             }
@@ -1492,11 +1468,7 @@
             year  = data.next.year;
             month = data.next.month;
             check = this.inside(
-                new Date(
-                    data.next.year,
-                    data.next.month,
-                    data.next.from
-                ),
+                new Date(data.next.year, data.next.month, data.next.from),
                 min,
                 max,
                 true
@@ -1802,83 +1774,56 @@
                         data     = [],
                         item     = null;
 
-                    switch (switcher) {
+                    if (switcher == 'b-cal__prev') {
+                        self.prev();
+                    } else if (switcher == 'b-cal__next') {
+                        self.next();
+                    } else if (switcher == 'b-cal__hide') {
+                        self.hide();
+                    } else if (switcher.match('b-cal__day_is_enabled')) {
+                        day   = node.getAttribute('data-day');
+                        year  = node.getAttribute('data-year');
+                        month = node.getAttribute('data-month');
 
-                        //
-                        case 'b-cal__prev':
-                            self.prev();
-                        break;
+                        data  = {
+                            raw   : new Date(year, month, day),
+                            field : self._nodes.field
+                        };
+                        data.human = Cal.human(data.raw);
 
-                        //
-                        case 'b-cal__next':
-                            self.next();
-                        break;
+                        self._nodes.items.clicked = node;
 
-                        //
-                        case 'b-cal__hide':
-                            self.hide();
-                        break;
+                        if (self._handlers.select) {
+                            self._handlers.select.call(
+                                node,
+                                event,
+                                {
+                                    hide   : self._proxy(self._hide,    self),
+                                    done   : self._proxy(self.select,   self),
+                                    reset  : self._proxy(self.reset,    self),
+                                    undone : self._proxy(self.deselect, self)
+                                },
+                                data
+                            );
+                        } else {
+                            self.select();
+                        }
+                    } else if (switcher.match('b-cal__day_is_chosen')) {
+                        self._nodes.items.clicked = node;
 
-                        //
-                        case 'b-cal__day b-cal__day_is_enabled':
-                        case 'b-cal__day b-cal__day_is_enabled b-cal__day_is_holiday':
-                        case 'b-cal__day b-cal__day_in_past b-cal__day_is_enabled':
-                        case 'b-cal__day b-cal__day_in_presence b-cal__day_is_enabled':
-                        case 'b-cal__day b-cal__day_in_future b-cal__day_is_enabled':
-                        case 'b-cal__day b-cal__day_in_past b-cal__day_is_enabled b-cal__day_is_holiday':
-                        case 'b-cal__day b-cal__day_in_presence b-cal__day_is_enabled b-cal__day_is_holiday':
-                        case 'b-cal__day b-cal__day_in_future b-cal__day_is_enabled b-cal__day_is_holiday':
-                            day   = node.getAttribute('data-day');
-                            year  = node.getAttribute('data-year');
-                            month = node.getAttribute('data-month');
-                            data  = {
-                                raw   : new Date(year, month, day),
-                                field : self._nodes.field
-                            };
-
-                            data.human = self.human(data.raw, self._lang);
-
-                            self._nodes.items.clicked = node;
-
-                            if (self._handlers.select) {
-                                self._handlers.select.call(
-                                    node,
-                                    event,
-                                    {
-                                        hide   : self._proxy(self._hide,    self),
-                                        done   : self._proxy(self.select,   self),
-                                        reset  : self._proxy(self.reset,    self),
-                                        undone : self._proxy(self.deselect, self)
-                                    },
-                                    data
-                                );
-                            } else {
-                                self.select();
-                            }
-                        break;
-
-                        //
-                        case 'b-cal__day b-cal__day_is_enabled b-cal__day_is_chosen':
-                        case 'b-cal__day b-cal__day_is_enabled b-cal__day_is_holiday b-cal__day_is_chosen':
-                        case 'b-cal__day b-cal__day_in_presence b-cal__day_is_enabled b-cal__day_is_chosen':
-                        case 'b-cal__day b-cal__day_in_presence b-cal__day_is_enabled b-cal__day_is_holiday b-cal__day_is_chosen':
-                            self._nodes.items.clicked = node;
-
-                            if (self._handlers.deselect) {
-                                self._handlers.deselect.call(
-                                    node,
-                                    event,
-                                    {
-                                        done  : self._proxy(self.deselect, self),
-                                        hide  : self._proxy(self._hide,    self),
-                                        reset : self._proxy(self.reset,    self)
-                                    }
-                                );
-                            } else {
-                                self.deselect();
-                            }
-                        break;
-
+                        if (self._handlers.deselect) {
+                            self._handlers.deselect.call(
+                                node,
+                                event,
+                                {
+                                    done  : self._proxy(self.deselect, self),
+                                    hide  : self._proxy(self._hide,    self),
+                                    reset : self._proxy(self.reset,    self)
+                                }
+                            );
+                        } else {
+                            self.deselect();
+                        }
                     }
                 })
             );

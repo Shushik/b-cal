@@ -183,6 +183,9 @@
     ----------------------------------------------------------------------
      default_stdout | Value which will be inserted into field by default
     ----------------------------------------------------------------------
+     block_range    | True if you want to block dates in tied calendar
+                    | after the date selection
+    ----------------------------------------------------------------------
      no_tail        | True, if you don`t want the calendar`s tail
                     | to be displayed
     ----------------------------------------------------------------------
