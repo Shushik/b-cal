@@ -135,15 +135,24 @@
             handlers = handlers || {};
 
             var
-                alias = '',
-                self  = this,
-                tmpl  = this._default.tmpl,
-                pure  = new Date();
+                alias  = '',
+                self   = this,
+                tmpl   = this._default.tmpl,
+                pure   = new Date(),
+                human  = null,
+                stdout = null;
 
             /**
              * Visibility indicator
              */
             this.shown = false;
+
+            /**
+             * Don`t hide calendar on blur
+             *
+             * @private
+             */
+            this._hold = false;
 
             // Setup language settings
             Cal.lang(params.lang);
@@ -160,13 +169,6 @@
                     this._way = 'value';
                 }
             }
-
-            /**
-             * Don`t hide calendar on blur
-             *
-             * @private
-             */
-            this._hold = false;
 
             // Setup templates
             if (!params.tmpl) {
@@ -263,20 +265,28 @@
             };
 
             // Setup the date in field by the default
-            if (this._nodes.field && params.default_stdout) {
-                if (typeof params.default_stdout == 'string') {
-                    params.default_stdout = Cal.parse(params.default_stdout);
+            stdout = params.default_stdout;
+
+            if (this._nodes.field && stdout) {
+                if (typeof stdout == 'string') {
+                    stdout = Cal.parse(stdout);
                 }
+
+                human = Cal.human(stdout);
 
                 this._nodes.field[this._way] = this._tmpl(
                     params.tmpl.stdout,
-                    Cal.human(params.default_stdout)
+                    human
                 );
+
+                this._nodes.field.setAttribute('data-day', stdout.getDate());
+                this._nodes.field.setAttribute('data-year', stdout.getFullYear());
+                this._nodes.field.setAttribute('data-month', stdout.getMonth());
 
                 if (params.mirror) {
                     params.mirror[this._way] = this._tmpl(
                         params.tmpl.mirror,
-                        Cal.human(params.default_stdout)
+                        human
                     );
                 }
             }
@@ -423,7 +433,11 @@
 
             // Try to read a date from field
             if (field && field[this._way] != '') {
-                now = Cal.parse(field[this._way]);
+                now = new Date(
+                    field.getAttribute('data-year'),
+                    field.getAttribute('data-month'),
+                    field.getAttribute('data-day')
+                );
             } else {
                 now = this._params.now_date;
             }
@@ -435,16 +449,17 @@
             this._draw(now);
 
             // Apply offset properties
-            if (ignore != 'top') {
-                block.style.top  = (pos.top + pos.height)  + 'px';
+            if (!ignore && ignore != 'top') {
+                block.style.top = (pos.top + pos.height) + 'px';
             }
 
+            if (!ignore && ignore != 'left') {
+                block.style.left = pos.left + 'px';
+            }
+
+            // Hide tangled calendar
             if (this._tangled) {
                 this._tangled.instance.hide();
-            }
-
-            if (ignore != 'left') {
-                block.style.left = pos.left + 'px';
             }
 
             // Add visibility class
@@ -625,13 +640,12 @@
                 raw2     = null,
                 tmp      = null,
                 human    = null,
-                items    = this._nodes.items,
                 field    = this._nodes.field,
                 params   = this._params,
                 tmpl     = params.tmpl,
                 mirror   = params.mirror,
-                chosen   = items.chosen,
-                clicked  = items.clicked,
+                chosen   = this._nodes.items.chosen,
+                clicked  = this._nodes.items.clicked,
                 tangled  = this._tangled,
                 relation = tangled ? tangled.relation : null,
                 instance = tangled ? tangled.instance : null;
@@ -642,7 +656,7 @@
             }
 
             // Set the selection to the currently selected item
-            chosen = items.chosen = clicked;
+            chosen = this._nodes.items.chosen = clicked;
             chosen.className += ' b-cal__day_is_chosen';
 
             // Get the chosen date raw and human objects
@@ -650,21 +664,23 @@
             year  = chosen.getAttribute('data-year') - 0;
             month = chosen.getAttribute('data-month') - 0;
             raw1  = new Date(year, month, day);
-            alias = items.alias = year + '-' +
-                                  month + '-' +
-                                  day;
+
+            this._nodes.items.alias = year + '-' +
+                                      month + '-' +
+                                      day;
 
             // Set values into tangled calendar`s fields
             if (tangled) {
-                items  = instance._nodes.items;
+                chosen = instance._nodes.items.chosen;
                 tmpl   = instance._params.tmpl;
-                raw2   = items.chosen ?
+                raw2   = chosen ?
                          new Date(
-                             items.chosen.getAttribute('data-year'),
-                             items.chosen.getAttribute('data-month'),
-                             items.chosen.getAttribute('data-day')
+                             chosen.getAttribute('data-year'),
+                             chosen.getAttribute('data-month'),
+                             chosen.getAttribute('data-day')
                          ) :
                          instance._now;
+
                 if (relation == '>') {
                     // Tangled calendar is larger
                     if (raw1 >= raw2) {
@@ -689,17 +705,21 @@
                     }
                 }
 
+                this._range = raw1;
+
                 // 
                 this.hide();
 
                 instance.jump(raw2);
 
-                //
-                human = Cal.human(raw1);
-
                 // Set the selected date into fields
                 if (field) {
+                    human = Cal.human(raw1);
+
                     field[this._way] = this._tmpl(tmpl.stdout, human);
+                    field.setAttribute('data-day',   human.day.num);
+                    field.setAttribute('data-year',  human.year.full);
+                    field.setAttribute('data-month', human.month.num - 1);
 
                     if (mirror) {
                         mirror.value = this._tmpl(tmpl.mirror, human);
@@ -716,12 +736,16 @@
                     clearTimeout(this._timer);
                 }
 
-                human  = Cal.human(raw2);
                 field  = instance._nodes.field;
                 mirror = instance._params.mirror;
 
                 if (field) {
+                    human  = Cal.human(raw2);
+
                     field[this._way] = this._tmpl(tmpl.stdout, human);
+                    field.setAttribute('data-day',   human.day.num);
+                    field.setAttribute('data-year',  human.year.full);
+                    field.setAttribute('data-month', human.month.num - 1);
 
                     if (mirror) {
                         mirror.value = this._tmpl(tmpl.mirror, human);
@@ -1618,10 +1642,6 @@
                         var
                             code = event.keyCode;
 
-                        if (!event.ctrlKey && !event.metaKey && !self.shown) {
-                            self.show();
-                        }
-
                         switch (code) {
 
                             // Filter keys
@@ -1655,6 +1675,10 @@
 
                             //
                             default:
+                                if (!event.ctrlKey && !event.metaKey && !self.shown) {
+                                    self.show();
+                                }
+
                                 if (self._timer) {
                                     clearTimeout(self._timer);
                                 }
@@ -1669,7 +1693,12 @@
                 // Catch mousedown on field
                 this._events.push(
                     this._bind(field, 'mousedown', function(event) {
-                        if (!self.shown) {
+                        var
+                            disabled = event.target.getAttribute('disabled') ?
+                                       true :
+                                       false;
+
+                        if (!self.shown && !disabled) {
                             if (self._handlers.show) {
                                 self._handlers.show.call(
                                     field,
