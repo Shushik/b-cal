@@ -265,9 +265,9 @@
             };
 
             // Setup the date in field by the default
-            stdout = params.default_stdout;
+            stdout = params.default_stdout ? params.default_stdout : pure;
 
-            if (this._nodes.field && stdout) {
+            if (this._nodes.field) {
                 if (typeof stdout == 'string') {
                     stdout = Cal.parse(stdout);
                 }
@@ -640,10 +640,10 @@
                 raw2     = null,
                 tmp      = null,
                 human    = null,
-                field    = this._nodes.field,
+                field    = null,
                 params   = this._params,
                 tmpl     = params.tmpl,
-                mirror   = params.mirror,
+                mirror   = null,
                 chosen   = this._nodes.items.chosen,
                 clicked  = this._nodes.items.clicked,
                 tangled  = this._tangled,
@@ -712,20 +712,6 @@
 
                 instance.jump(raw2);
 
-                // Set the selected date into fields
-                if (field) {
-                    human = Cal.human(raw1);
-
-                    field[this._way] = this._tmpl(tmpl.stdout, human);
-                    field.setAttribute('data-day',   human.day.num);
-                    field.setAttribute('data-year',  human.year.full);
-                    field.setAttribute('data-month', human.month.num - 1);
-
-                    if (mirror) {
-                        mirror.value = this._tmpl(tmpl.mirror, human);
-                    }
-                }
-
                 // Reset the mousemove event indicator
                 if (this._hold) {
                     this._hold = false;
@@ -754,6 +740,23 @@
                     if (show) {
                         field.focus();
                     }
+                }
+            }
+
+            field  = this._nodes.field;
+            mirror = params.mirror;
+
+            // Set the selected date into fields
+            if (field) {
+                human = Cal.human(raw1);
+
+                field[this._way] = this._tmpl(tmpl.stdout, human);
+                field.setAttribute('data-day',   human.day.num);
+                field.setAttribute('data-year',  human.year.full);
+                field.setAttribute('data-month', human.month.num - 1);
+
+                if (mirror) {
+                    mirror.value = this._tmpl(tmpl.mirror, human);
                 }
             }
 
@@ -838,7 +841,7 @@
                 year      = 0,
                 month     = 0,
                 alias     = '',
-                sep       = '[\\s\\.,\\/]',
+                sep       = '[\\s\\.,\\/\-]',
                 tmp       = [],
                 pttp      = Cal.prototype,
                 lang      = pttp._monthes2replaces(),
@@ -922,7 +925,14 @@
                 return dirt;
             }
 
-            if (dstr.match(new RegExp('\\d{1,2}' + sep + '\\d{1,2}(' + sep + '\\d{2,4})?'))) {
+            if (dstr.match(new RegExp('\\d{4}' + sep + '\\d{1,2}' + sep + '\\d{1,2}'))) {
+                // 00[00] 00 00
+                tmp = dstr.split(new RegExp(sep));
+
+                day   = tmp[2];
+                year  = tmp[0];
+                month = tmp[1];
+            } else if (dstr.match(new RegExp('\\d{1,2}' + sep + '\\d{1,2}(' + sep + '\\d{2,4})?'))) {
                 // 00 00 00[00]
                 tmp = dstr.split(new RegExp(sep));
 
@@ -932,13 +942,6 @@
                 if (tmp[2]) {
                     year = tmp[2];
                 }
-            } else if (dstr.match(new RegExp('\\d{2,4}' + sep + '\\d{1,2}' + sep + '\\d{1,2}'))) {
-                // 00[00] 00 00
-                tmp = dstr.split(new RegExp(sep));
-
-                day   = tmp[2];
-                year  = tmp[0];
-                month = tmp[1];
             } else if (
                 tmp = dstr.match(new RegExp(
                     '(\\d{1,2})' +
