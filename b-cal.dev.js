@@ -1876,17 +1876,21 @@
             data = data || {};
 
             tmpl = tmpl
-                   .replace(/\{\{ ?/g, "';out+=data.")
-                   .replace(/ ?\}\}/g, ";out+='");
-/*
-                    TODO:
+                   .replace(/\{\{ ?/g,                     "';out+=")
+                   .replace(/ ?\}\}/g,                     ";out+='")
+                   .replace(/\{% if ?([^%]*) ?%\}/ig,      "';if($1){out+='")
+                   .replace(/\{% else ?%\}/ig,             "';}else{out+='")
+                   .replace(/\{% ?endif ?%\}/ig,           "';}out+='");
 
-                   .replace(/\{% if ?([^ %]*) ?%\}/ig,      "';if(data.$1){out+='")
-                   .replace(/\{% else if ?([^ %]*) ?%\}/ig, "';}else if(data.$1){out+='")
-                   .replace(/\{% else ?%\}/ig,              "';}else{out+='")
-                   .replace(/\{% ?endif ?%\}/ig,            "';}out+='")
-*/
-            tmpl = "(function(){var out = '" + tmpl + "';return out;})();";
+            var
+                vars  = '',
+                alias = '';
+
+            for (alias in data) {
+                vars += alias + '=data["' + alias + '"],';
+            }
+
+            tmpl = ";(function(){var " + vars + "out = '" + tmpl + "';return out;})();";
 
             return eval(tmpl);
         },
