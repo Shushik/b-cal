@@ -1619,246 +1619,68 @@
                 field.setAttribute('autocomplete', 'off');
 
                 // Close calendar on click ewerywhere
-                this._events.push(
-                    this._bind(document, 'click', function(event) {
-                        var
-                            node = event.target;
-    
-                        if (!node.className.match('b-cal') && node != field) {
-                            self.hide();
-                        }
-                    })
-                );
+                this._events.push(this._bind(
+                    document,
+                    'click',
+                    this._proxy(this._click4document, this)
+                ));
 
                 // Close calendar on ESC
-                this._events.push(
-                    this._bind(document, 'keydown', function(event) {
-                        if (event.keyCode == 27 && self.shown) {
-                            self.hide();
-                        }
-                    })
-                );
+                this._events.push(this._bind(
+                    document,
+                    'keydown',
+                    this._proxy(this._keydown4document, this)
+                ));
 
                 // Catch keys in field
-                this._events.push(
-                    this._bind(field, 'keydown', function(event) {
-                        var
-                            code = event.keyCode;
-
-                        switch (code) {
-
-                            // Filter keys
-                            case 9:
-                            case 16:
-                            case 17:
-                            case 18:
-                            case 20:
-                            case 27:
-                            case 37:
-                            case 38:
-                            case 39:
-                            case 224:
-                                return true;
-                            break;
-
-                            // Show on down arrow
-                            case 40:
-                                if (!self.shown) {
-                                    self.show();
-                                }
-                            break;
-
-                            // Close on Enter
-                            case 13:
-                                if (self.shown) {
-                                    event.preventDefault();
-                                    self.hide();
-                                }
-                            break;
-
-                            //
-                            default:
-                                if (!event.ctrlKey && !event.metaKey && !self.shown) {
-                                    self.show();
-                                }
-
-                                if (self._timer) {
-                                    clearTimeout(self._timer);
-                                }
-
-                                self._timer = setTimeout(self._proxy(self.jump, self), 500);
-                            break;
-
-                        }
-                    })
-                );
+                this._events.push(this._bind(
+                    field,
+                    'keydown',
+                    this._proxy(this._keydown4field, this)
+                ));
 
                 // Catch mousedown on field
-                this._events.push(
-                    this._bind(field, 'mousedown', function(event) {
-                        var
-                            disabled = event.target.getAttribute('disabled') ?
-                                       true :
-                                       false;
-
-                        if (!self.shown && !disabled) {
-                            if (self._handlers.show) {
-                                self._handlers.show.call(
-                                    field,
-                                    event,
-                                    {
-                                        done : self._proxy(self.show, self),
-                                        hide : self._proxy(self.hide, self)
-                                    }
-                                );
-                            } else {
-                                self.show();
-                            }
-                        }
-                    })
-                );
+                this._events.push(this._bind(
+                    field,
+                    'mousedown',
+                    this._proxy(this._mousedown4field, this)
+                ));
 
                 // Catch blur on field
-                this._events.push(
-                    this._bind(field, 'blur', function(event) {
-                        if (self.shown && !self._hold) {
-                            self.hide();
-                        }
-
-                        if (self._hold) {
-                            self._hold = false;
-                        }
-                    })
-                );
+                this._events.push(this._bind(
+                    field,
+                    'blur',
+                    this._proxy(this._blur4field, this)
+                ));
 
                 // Catch focus on field
-                this._events.push(
-                    this._bind(field, 'focus', function(event) {
-                        if (!self.shown) {
-                            if (self._handlers.show) {
-                                self._handlers.show.call(
-                                    field,
-                                    event,
-                                    {
-                                        done : self._proxy(self.show, self),
-                                        hide : self._proxy(self.hide, self)
-                                    }
-                                );
-                            } else {
-                                self.show();
-                            }
-                        }
-                    })
-                );
-
-                // Catch click on field
-                this._events.push(
-                    this._bind(field, 'click', function(event) {
-                        if (!self.shown && self.hiddenable) {
-                            if (self._handlers.show) {
-                                self._handlers.show.call(
-                                    block,
-                                    event,
-                                    {
-                                        done  : self._proxy(self.show,  self),
-                                        hide  : self._proxy(self.hide,  self),
-                                        reset : self._proxy(self.reset, self)
-                                    }
-                                );
-                            } else {
-                                self.show();
-                            }
-                        }
-                    })
-                );
+                this._events.push(this._bind(
+                    field,
+                    'focus',
+                    this._proxy(this._focus4field, this)
+                ));
             }
 
             // 
-            this._events.push(
-                this._bind(block, 'mousemove', function(event) {
-                    if (self._timer) {
-                        clearTimeout(self._timer);
-                    }
-
-                    self._hold = true;
-                })
-            );
+            this._events.push(this._bind(
+                block,
+                'mousemove',
+                this._proxy(this._mousemove4block, this)
+            ));
 
             // 
-            this._events.push(
-                this._bind(block, 'mouseout', function(event) {
-                    self._timer = setTimeout(function() {
-                        self._hold = false;
-                    }, 150);
-                })
-            );
+            this._events.push(this._bind(
+                block,
+                'mouseout',
+                this._proxy(this._mouseout4block, this)
+            ));
 
             // 
-            this._events.push(
-                this._bind(block, 'click', function(event) {
-                    var
-                        beg      = 0,
-                        day      = 0,
-                        year     = 0,
-                        month    = 0,
-                        node     = event.target,
-                        switcher = node.className,
-                        data     = [],
-                        item     = null;
-
-                    if (switcher == 'b-cal__prev') {
-                        self.prev();
-                    } else if (switcher == 'b-cal__next') {
-                        self.next();
-                    } else if (switcher == 'b-cal__hide') {
-                        self.hide();
-                    } else if (switcher.match('b-cal__day_is_enabled')) {
-                        day   = node.getAttribute('data-day');
-                        year  = node.getAttribute('data-year');
-                        month = node.getAttribute('data-month');
-
-                        data  = {
-                            raw   : new Date(year, month, day),
-                            field : self._nodes.field
-                        };
-                        data.human = Cal.human(data.raw);
-
-                        self._nodes.items.clicked = node;
-
-                        if (self._handlers.select) {
-                            self._handlers.select.call(
-                                node,
-                                event,
-                                {
-                                    hide   : self._proxy(self._hide,    self),
-                                    done   : self._proxy(self.select,   self),
-                                    reset  : self._proxy(self.reset,    self),
-                                    undone : self._proxy(self.deselect, self)
-                                },
-                                data
-                            );
-                        } else {
-                            self.select();
-                        }
-                    } else if (switcher.match('b-cal__day_is_chosen')) {
-                        self._nodes.items.clicked = node;
-
-                        if (self._handlers.deselect) {
-                            self._handlers.deselect.call(
-                                node,
-                                event,
-                                {
-                                    done  : self._proxy(self.deselect, self),
-                                    hide  : self._proxy(self._hide,    self),
-                                    reset : self._proxy(self.reset,    self)
-                                }
-                            );
-                        } else {
-                            self.deselect();
-                        }
-                    }
-                })
-            );
+            this._events.push(this._bind(
+                block,
+                'click',
+                this._proxy(this._click4block, this)
+            ));
 
             return this;
         },
@@ -2116,6 +1938,278 @@
                     args = arguments;
 
                 return fn.apply(ctx, args);
+            }
+        },
+        /**
+         *
+         *
+         * @private
+         *
+         * @this    {Cal}
+         * @param   {Event}
+         * @returns {undefined}
+         */
+        _click4document : function(event) {
+            var
+                node  = event.target,
+                field = this._nodes.field;
+
+            if (!node.className.match('b-cal') && field && node != field) {
+                this.hide();
+            }
+        },
+        /**
+         *
+         *
+         * @private
+         *
+         * @this    {Cal}
+         * @param   {Event}
+         * @returns {undefined}
+         */
+        _keydown4document : function(event) {
+            if (event.keyCode == 27 && this.shown) {
+                this.hide();
+            }
+        },
+        /**
+         *
+         *
+         * @private
+         *
+         * @this    {Cal}
+         * @param   {Event}
+         * @returns {undefined}
+         */
+        _mousedown4field : function(event) {
+            var
+                disabled = event.target.getAttribute('disabled') ?
+                           true :
+                           false;
+
+            if (!this.shown && !disabled) {
+                if (this._handlers.show) {
+                    this._handlers.show.call(
+                        field,
+                        event,
+                        {
+                            done : this._proxy(this.show, this),
+                            hide : this._proxy(this.hide, this)
+                        }
+                    );
+                } else {
+                    this.show();
+                }
+            }
+        },
+        /**
+         *
+         *
+         * @private
+         *
+         * @this    {Cal}
+         * @param   {Event}
+         * @returns {undefined}
+         */
+        _keydown4field : function(event) {
+            var
+                code = event.keyCode;
+
+            switch (code) {
+
+                // Filter keys
+                case 9:
+                case 16:
+                case 17:
+                case 18:
+                case 20:
+                case 27:
+                case 37:
+                case 38:
+                case 39:
+                case 224:
+                    return true;
+                break;
+
+                // Show on down arrow
+                case 40:
+                    if (!this.shown) {
+                        this.show();
+                    }
+                break;
+
+                // Close on Enter
+                case 13:
+                    if (this.shown) {
+                        event.preventDefault();
+                        this.hide();
+                    }
+                break;
+
+                //
+                default:
+                    if (!event.ctrlKey && !event.metaKey && !this.shown) {
+                        this.show();
+                    }
+
+                    if (this._timer) {
+                        clearTimeout(this._timer);
+                    }
+
+                    this._timer = setTimeout(this._proxy(this.jump, this), 500);
+                break;
+
+            }
+        },
+        /**
+         *
+         *
+         * @private
+         *
+         * @this    {Cal}
+         * @param   {Event}
+         * @returns {undefined}
+         */
+        _focus4field : function(event) {
+            var
+                handlers = this._handlers;
+
+            if (!this.shown) {
+                if (handlers.show) {
+                    handlers.show.call(
+                        field,
+                        event,
+                        {
+                            done : this._proxy(this.show, this),
+                            hide : this._proxy(this.hide, this)
+                        }
+                    );
+                } else {
+                    this.show();
+                }
+            }
+        },
+        /**
+         *
+         *
+         * @private
+         *
+         * @this    {Cal}
+         * @param   {Event}
+         * @returns {undefined}
+         */
+        _blur4field : function(event) {
+            if (this.shown && !this._hold) {
+                this.hide();
+            }
+
+            if (this._hold) {
+                this._hold = false;
+            }
+        },
+        /**
+         *
+         *
+         * @private
+         *
+         * @this    {Cal}
+         * @param   {Event}
+         * @returns {undefined}
+         */
+        _mousemove4block : function(event) {
+            if (this._timer) {
+                clearTimeout(this._timer);
+            }
+
+            this._hold = true;
+        },
+        /**
+         *
+         *
+         * @private
+         *
+         * @this    {Cal}
+         * @param   {Event}
+         * @returns {undefined}
+         */
+        _mouseout4block : function(event) {
+            var
+                self = this;
+
+            this._timer = setTimeout(function() {
+                self._hold = false;
+            }, 150);
+        },
+        /**
+         *
+         *
+         * @private
+         *
+         * @this    {Cal}
+         * @param   {Event}
+         * @returns {undefined}
+         */
+        _click4block : function(event) {
+            var
+                beg      = 0,
+                day      = 0,
+                year     = 0,
+                month    = 0,
+                node     = event.target,
+                switcher = node.className,
+                data     = [],
+                item     = null;
+
+            if (switcher == 'b-cal__prev') {
+                this.prev();
+            } else if (switcher == 'b-cal__next') {
+                this.next();
+            } else if (switcher == 'b-cal__hide') {
+                this.hide();
+            } else if (switcher.match('b-cal__day_is_enabled')) {
+                day   = node.getAttribute('data-day');
+                year  = node.getAttribute('data-year');
+                month = node.getAttribute('data-month');
+
+                data  = {
+                    raw   : new Date(year, month, day),
+                    field : this._nodes.field
+                };
+                data.human = Cal.human(data.raw);
+
+                this._nodes.items.clicked = node;
+
+                if (this._handlers.select) {
+                    this._handlers.select.call(
+                        node,
+                        event,
+                        {
+                            hide   : this._proxy(this._hide,    this),
+                            done   : this._proxy(this.select,   this),
+                            reset  : this._proxy(this.reset,    this),
+                            undone : this._proxy(this.deselect, this)
+                        },
+                        data
+                    );
+                } else {
+                    this.select();
+                }
+            } else if (switcher.match('b-cal__day_is_chosen')) {
+                this._nodes.items.clicked = node;
+
+                if (this._handlers.deselect) {
+                    this._handlers.deselect.call(
+                        node,
+                        event,
+                        {
+                            done  : this._proxy(this.deselect, this),
+                            hide  : this._proxy(this._hide,    this),
+                            reset : this._proxy(this.reset,    this)
+                        }
+                    );
+                } else {
+                    this.deselect();
+                }
             }
         }
     };
