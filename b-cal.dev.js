@@ -350,24 +350,7 @@
          */
         uninstall : function() {
             var
-                pos    = 0,
                 events = this._events.length,
-                remove = [
-                    '_min',
-                    '_now',
-                    '_max',
-                    '_way',
-                    'shown',
-                    '_hold',
-                    '_data',
-                    '_nodes',
-                    '_events',
-                    '_offset',
-                    '_params',
-                    '_tangled',
-                    '_handlers',
-                    'hiddenable'
-                ],
                 event  = null,
                 child  = this._nodes.block,
                 parent = this._nodes.target;
@@ -380,9 +363,20 @@
             }
 
             // Remove properties
-            for (pos = 0; pos < 7; pos++) {
-                delete this[remove[pos]];
-            }
+            delete this._min;
+            delete this._now;
+            delete this._max;
+            delete this._way;
+            delete this.shown;
+            delete this._hold;
+            delete this._data;
+            delete this._nodes;
+            delete this._events;
+            delete this._offset;
+            delete this._params;
+            delete this._tangled;
+            delete this._handlers;
+            delete this.hiddenable;
 
             // Remove DOM
             parent.removeChild(child);
@@ -1685,262 +1679,6 @@
             return this;
         },
         /**
-         * Templates engine
-         *
-         * @private
-         *
-         * @this    {Cal}
-         * @param   {String}
-         * @param   {Object}
-         * @returns {String}
-         */
-        _tmpl : function(tmpl, data) {
-            data = data || {};
-
-            tmpl = tmpl
-                   .replace(/\{\{ ?/g,                     "';out+=")
-                   .replace(/ ?\}\}/g,                     ";out+='")
-                   .replace(/\{% if ?([^%]*) ?%\}/ig,      "';if($1){out+='")
-                   .replace(/\{% else ?%\}/ig,             "';}else{out+='")
-                   .replace(/\{% ?endif ?%\}/ig,           "';}out+='");
-
-            var
-                vars  = '',
-                alias = '';
-
-            for (alias in data) {
-                vars += alias + '=data["' + alias + '"],';
-            }
-
-            tmpl = ";(function(){var " + vars + "out = '" + tmpl + "';return out;})();";
-
-            return eval(tmpl);
-        },
-        /**
-         * Fix for IE8 .indexOf
-         *
-         * @private
-         *
-         * @this    {Cal}
-         * @param   {String}
-         * @param   {Array}
-         * @returns {Number|String}
-         */
-        _indexof : function(pin, hay) {
-            // Arrays and Objects allowed only
-            if (!hay || typeof hay != 'object') {
-                return -1;
-            }
-
-            var
-                stalk = 0;
-
-            // Try to use a normal indexOf if it`s possible
-            if (hay.indexOf) {
-                return hay.indexOf(pin);
-            }
-
-            // Hack for an array in IE8 or for an object
-            for (stalk in hay) {
-                if (hay[stalk] == pin) {
-                    return stalk;
-                }
-            }
-
-            return -1;
-        },
-        /**
-         * Bind an event
-         *
-         * @private
-         *
-         * @this    {Cal}
-         * @param   {DOMNode}
-         * @param   {String}
-         * @param   {Function}
-         * @returns {Object}
-         */
-        _bind : function(target, alias, handler) {
-            var
-                prefix  = '',
-                wrapper = '',
-                self    = this,
-                event   = null,
-                out     = {
-                    alias   : alias,
-                    target  : target,
-                    handler : function(event) {
-                        event = self._eventize(event);
-
-                        handler(event);
-                    }
-                };
-
-            if (target.addEventListener) {
-                wrapper = 'addEventListener';
-            } else if (target.attachEvent) {
-                prefix  = 'on';
-                wrapper = 'attachEvent';
-            }
-
-            //
-            target[wrapper](
-                prefix + alias,
-                out.handler
-            );
-
-            return out;
-        },
-        /**
-         * Unbind an event
-         *
-         * @private
-         *
-         * @this    {Suggest}
-         * @param   {DOMNode}
-         * @param   {String}
-         * @param   {Function}
-         * @returns {Object}
-         */
-        _unbind : function(target, alias, handler) {
-            var
-                prefix  = '',
-                wrapper = '';
-
-            if (target.removeEventListener) {
-                wrapper = 'removeEventListener';
-            } else if (target.detachEvent) {
-                prefix  = 'on';
-                wrapper = 'detachEvent';
-            }
-
-            target[wrapper](
-                prefix + alias,
-                handler
-            );
-        },
-        /**
-         * Get an offset for chosen elements
-         *
-         * @private
-         *
-         * @this    {Suggest}
-         * @param   {DOMNode}
-         * @param   {DOMNode}
-         * @returns {Object}
-         */
-        _offsetize : function(from, till) {
-            till = till || document.body;
-
-            var
-                node     = from,
-                view     = document.defaultView,
-                computed = null,
-                offset   = {
-                    top    : node.offsetTop,
-                    left   : node.offsetLeft,
-                    width  : node.offsetWidth,
-                    height : node.offsetHeight
-                };
-
-            while (node.offsetParent && node != till) {
-
-                node     = node.offsetParent;
-                computed = (view && view.getComputedStyle != 'undefined') ?
-                           view.getComputedStyle(node, null) :
-                           node.currentStyle;
-
-                if (computed.paddingTop) {
-                    offset.top -= (computed.paddingTop.replace('px', '') - 0);
-                }
-
-                offset.top  += node.offsetTop;
-                offset.left += node.offsetLeft;
-            }
-
-            if (node.offsetParent) {
-                computed = (view && view.getComputedStyle != 'undefined') ?
-                           view.getComputedStyle(node.offsetParent, null) :
-                           node.offsetParent.currentStyle;
-
-                if (computed.paddingTop) {
-                    offset.top -= (computed.paddingTop.replace('px', '') - 0);
-                }
-            }
-
-            return offset;
-        },
-        /**
-         * Normalize an event object
-         *
-         * @this    {Suggest}
-         * @param   {Event}
-         * @returns {Event}
-         */
-        _eventize : function(event) {
-            event = event || window.event;
-
-            var
-                // I do really hate this browser
-                opera = navigator.userAgent.match(/opera/ig) ?
-                        true :
-                        false,
-                type  = event.type;
-
-            // Events hacks for older browsers
-            if (!opera && event.srcElement) {
-                event.target = event.srcElement;
-            }
-
-            if (!opera && event.target.nodeType == 3) {
-                event.target = event.target.parentNode;
-            }
-
-            // Keycode
-            if (
-                type == 'keypress' ||
-                type == 'keydown' ||
-                type == 'keyup'
-            ) {
-                if (!event.keyCode && event.which) {
-                    event.keyCode = event.which;
-                }
-            }
-
-            // Stop bubbling
-            if (!opera && !event.stopPropagation) {
-                event.stopPropagation = function() {
-                    this.cancelBubble = true;
-                };
-            }
-
-            // Prevent default action
-            if (!opera && !event.preventDefault) {
-                event.preventDefault = function() {
-                    this.returnValue = false;
-                };
-            }
-
-            return event;
-        },
-        /**
-         * Save a needed context for further function execution
-         *
-         * @this    {Suggest}
-         * @param   {Function}
-         * @param   {Object}
-         * @param   {Array}
-         * @returns {Function}
-         */
-        _proxy : function(fn, ctx) {
-            return function() {
-                var
-                    args = arguments;
-
-                return fn.apply(ctx, args);
-            }
-        },
-        /**
          *
          *
          * @private
@@ -2210,6 +1948,262 @@
                 } else {
                     this.deselect();
                 }
+            }
+        },
+        /**
+         * Templates engine
+         *
+         * @private
+         *
+         * @this    {Cal}
+         * @param   {String}
+         * @param   {Object}
+         * @returns {String}
+         */
+        _tmpl : function(tmpl, data) {
+            data = data || {};
+
+            tmpl = tmpl
+                   .replace(/\{\{ ?/g,                "';out+=")
+                   .replace(/ ?\}\}/g,                ";out+='")
+                   .replace(/\{% if ?([^%]*) ?%\}/ig, "';if($1){out+='")
+                   .replace(/\{% else ?%\}/ig,        "';}else{out+='")
+                   .replace(/\{% ?endif ?%\}/ig,      "';}out+='");
+
+            var
+                vars  = '',
+                alias = '';
+
+            for (alias in data) {
+                vars += alias + '=data["' + alias + '"],';
+            }
+
+            tmpl = ";(function(){var " + vars + "out = '" + tmpl + "';return out;})();";
+
+            return eval(tmpl);
+        },
+        /**
+         * Fix for IE8 .indexOf
+         *
+         * @private
+         *
+         * @this    {Cal}
+         * @param   {String}
+         * @param   {Array}
+         * @returns {Number|String}
+         */
+        _indexof : function(pin, hay) {
+            // Arrays and Objects allowed only
+            if (!hay || typeof hay != 'object') {
+                return -1;
+            }
+
+            var
+                stalk = 0;
+
+            // Try to use a normal indexOf if it`s possible
+            if (hay.indexOf) {
+                return hay.indexOf(pin);
+            }
+
+            // Hack for an array in IE8 or for an object
+            for (stalk in hay) {
+                if (hay[stalk] == pin) {
+                    return stalk;
+                }
+            }
+
+            return -1;
+        },
+        /**
+         * Bind an event
+         *
+         * @private
+         *
+         * @this    {Cal}
+         * @param   {DOMNode}
+         * @param   {String}
+         * @param   {Function}
+         * @returns {Object}
+         */
+        _bind : function(target, alias, handler) {
+            var
+                prefix  = '',
+                wrapper = '',
+                self    = this,
+                event   = null,
+                out     = {
+                    alias   : alias,
+                    target  : target,
+                    handler : function(event) {
+                        event = self._eventize(event);
+
+                        handler(event);
+                    }
+                };
+
+            if (target.addEventListener) {
+                wrapper = 'addEventListener';
+            } else if (target.attachEvent) {
+                prefix  = 'on';
+                wrapper = 'attachEvent';
+            }
+
+            //
+            target[wrapper](
+                prefix + alias,
+                out.handler
+            );
+
+            return out;
+        },
+        /**
+         * Unbind an event
+         *
+         * @private
+         *
+         * @this    {Suggest}
+         * @param   {DOMNode}
+         * @param   {String}
+         * @param   {Function}
+         * @returns {Object}
+         */
+        _unbind : function(target, alias, handler) {
+            var
+                prefix  = '',
+                wrapper = '';
+
+            if (target.removeEventListener) {
+                wrapper = 'removeEventListener';
+            } else if (target.detachEvent) {
+                prefix  = 'on';
+                wrapper = 'detachEvent';
+            }
+
+            target[wrapper](
+                prefix + alias,
+                handler
+            );
+        },
+        /**
+         * Get an offset for chosen elements
+         *
+         * @private
+         *
+         * @this    {Suggest}
+         * @param   {DOMNode}
+         * @param   {DOMNode}
+         * @returns {Object}
+         */
+        _offsetize : function(from, till) {
+            till = till || document.body;
+
+            var
+                node     = from,
+                view     = document.defaultView,
+                computed = null,
+                offset   = {
+                    top    : node.offsetTop,
+                    left   : node.offsetLeft,
+                    width  : node.offsetWidth,
+                    height : node.offsetHeight
+                };
+
+            while (node.offsetParent && node != till) {
+
+                node     = node.offsetParent;
+                computed = (view && view.getComputedStyle != 'undefined') ?
+                           view.getComputedStyle(node, null) :
+                           node.currentStyle;
+
+                if (computed.paddingTop) {
+                    offset.top -= (computed.paddingTop.replace('px', '') - 0);
+                }
+
+                offset.top  += node.offsetTop;
+                offset.left += node.offsetLeft;
+            }
+
+            if (node.offsetParent) {
+                computed = (view && view.getComputedStyle != 'undefined') ?
+                           view.getComputedStyle(node.offsetParent, null) :
+                           node.offsetParent.currentStyle;
+
+                if (computed.paddingTop) {
+                    offset.top -= (computed.paddingTop.replace('px', '') - 0);
+                }
+            }
+
+            return offset;
+        },
+        /**
+         * Normalize an event object
+         *
+         * @this    {Suggest}
+         * @param   {Event}
+         * @returns {Event}
+         */
+        _eventize : function(event) {
+            event = event || window.event;
+
+            var
+                // I do really hate this browser
+                opera = navigator.userAgent.match(/opera/ig) ?
+                        true :
+                        false,
+                type  = event.type;
+
+            // Events hacks for older browsers
+            if (!opera && event.srcElement) {
+                event.target = event.srcElement;
+            }
+
+            if (!opera && event.target.nodeType == 3) {
+                event.target = event.target.parentNode;
+            }
+
+            // Keycode
+            if (
+                type == 'keypress' ||
+                type == 'keydown' ||
+                type == 'keyup'
+            ) {
+                if (!event.keyCode && event.which) {
+                    event.keyCode = event.which;
+                }
+            }
+
+            // Stop bubbling
+            if (!opera && !event.stopPropagation) {
+                event.stopPropagation = function() {
+                    this.cancelBubble = true;
+                };
+            }
+
+            // Prevent default action
+            if (!opera && !event.preventDefault) {
+                event.preventDefault = function() {
+                    this.returnValue = false;
+                };
+            }
+
+            return event;
+        },
+        /**
+         * Save a needed context for further function execution
+         *
+         * @this    {Suggest}
+         * @param   {Function}
+         * @param   {Object}
+         * @param   {Array}
+         * @returns {Function}
+         */
+        _proxy : function(fn, ctx) {
+            return function() {
+                var
+                    args = arguments;
+
+                return fn.apply(ctx, args);
             }
         }
     };
