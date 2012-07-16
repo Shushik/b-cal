@@ -306,18 +306,6 @@
             this._events = [];
 
             /**
-             * Offset coordinates of the field
-             *
-             * @private
-             */
-            if (!params.offset_ignore) {
-                this._offset = this._offsetize(
-                    this._nodes.field,
-                    this._nodes.target
-                );
-            }
-
-            /**
              * Saved user params
              *
              * @private
@@ -372,7 +360,6 @@
             delete this._data;
             delete this._nodes;
             delete this._events;
-            delete this._offset;
             delete this._params;
             delete this._tangled;
             delete this._handlers;
@@ -416,12 +403,13 @@
                 max    = this._params.max_date,
                 block  = this._nodes.block,
                 field  = this._nodes.field,
-                ignore = this._params.offset_ignore;
+                ignore = this._params.offset_ignore,
+                offset = this._offsetize(field);
 
             // Try to use user given offset properties
-            for (alias in this._offset) {
+            for (alias in offset) {
                 if (!pos[alias]) {
-                    pos[alias] = this._offset[alias];
+                    pos[alias] = offset[alias];
                 }
             }
 
@@ -443,12 +431,14 @@
             this._draw(now);
 
             // Apply offset properties
-            if (!ignore && ignore != 'top') {
-                block.style.top = (pos.top + pos.height) + 'px';
-            }
+            if (!ignore) {
+                if (ignore != 'top') {
+                    block.style.top = (pos.top + pos.height) + 'px';
+                }
 
-            if (!ignore && ignore != 'left') {
-                block.style.left = pos.left + 'px';
+                if (ignore != 'left') {
+                    block.style.left = pos.left + 'px';
+                }
             }
 
             // Hide tangled calendar
@@ -2092,46 +2082,35 @@
          *
          * @this    {Suggest}
          * @param   {DOMNode}
-         * @param   {DOMNode}
          * @returns {Object}
          */
-        _offsetize : function(from, till) {
-            till = till || document.body;
-
+        _offsetize : function(from) {
             var
-                node     = from,
-                view     = document.defaultView,
-                computed = null,
-                offset   = {
-                    top    : node.offsetTop,
-                    left   : node.offsetLeft,
+                css    = null,
+                till   = document.body,
+                node   = from,
+                view   = document.defaultView,
+                parent = node.offsetParent,
+                offset = {
+                    top    : 0,
+                    left   : 0,
                     width  : node.offsetWidth,
                     height : node.offsetHeight
                 };
 
             while (node.offsetParent && node != till) {
+                css = (view && view.getComputedStyle != 'undefined') ?
+                      view.getComputedStyle(node, null) :
+                      node.currentStyle;
 
-                node     = node.offsetParent;
-                computed = (view && view.getComputedStyle != 'undefined') ?
-                           view.getComputedStyle(node, null) :
-                           node.currentStyle;
-
-                if (computed.paddingTop) {
-                    offset.top -= (computed.paddingTop.replace('px', '') - 0);
+                if (css.position != 'static') {
+                    till = node.offsetParent;
+                } else {
+                    offset.top  += node.offsetTop;
+                    offset.left += node.offsetLeft;
                 }
 
-                offset.top  += node.offsetTop;
-                offset.left += node.offsetLeft;
-            }
-
-            if (node.offsetParent) {
-                computed = (view && view.getComputedStyle != 'undefined') ?
-                           view.getComputedStyle(node.offsetParent, null) :
-                           node.offsetParent.currentStyle;
-
-                if (computed.paddingTop) {
-                    offset.top -= (computed.paddingTop.replace('px', '') - 0);
-                }
+                node = node.offsetParent;
             }
 
             return offset;
