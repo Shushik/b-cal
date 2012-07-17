@@ -431,7 +431,7 @@
             this._draw(now);
 
             // Apply offset properties
-            if (!ignore) {
+            if (ignore !== true && ignore != 'all') {
                 if (ignore != 'top') {
                     block.style.top = (pos.top + pos.height) + 'px';
                 }
