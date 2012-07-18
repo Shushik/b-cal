@@ -390,12 +390,9 @@
          * Show calendar
          *
          * @this    {Cal}
-         * @param   {Object}
          * @returns {Cal}
          */
-        show : function(pos) {
-            pos = pos || {};
-
+        show : function() {
             var
                 alias  = '',
                 now    = null,
@@ -404,14 +401,7 @@
                 block  = this._nodes.block,
                 field  = this._nodes.field,
                 ignore = this._params.offset_ignore,
-                offset = this._offsetize(field);
-
-            // Try to use user given offset properties
-            for (alias in offset) {
-                if (!pos[alias]) {
-                    pos[alias] = offset[alias];
-                }
-            }
+                pos    = this._offsetize(field, this._nodes.target);
 
             // Try to read a date from field
             if (field && field[this._way] != '') {
@@ -2077,40 +2067,79 @@
         },
         /**
          * Get an offset for chosen elements
+         * (damned magic I copypasted from jQuery)
          *
          * @private
          *
          * @this    {Suggest}
          * @param   {DOMNode}
+         * @param   {DOMNode}
          * @returns {Object}
          */
-        _offsetize : function(from) {
+        _offsetize : function(from, till) {
+            till = till || document.body;
+
             var
-                css    = null,
-                till   = document.body,
-                node   = from,
-                view   = document.defaultView,
-                parent = node.offsetParent,
-                offset = {
-                    top    : 0,
-                    left   : 0,
+                quirks  = false,
+                table   = /^t(?:able|d|h)$/i,
+                doc     = document,
+                body    = doc.body,
+                view    = doc.defaultView ? doc.defaultView.getComputedStyle : null,
+                node    = from,
+                prev    = view ? view(node, null) : node.currentStyle,
+                curr    = null,
+                offset  = {
+                    top    : node.offsetTop,
+                    left   : node.offsetLeft,
                     width  : node.offsetWidth,
                     height : node.offsetHeight
-                };
+                },
+                cparent = node.offsetParent,
+                pparent = from;
 
-            while (node.offsetParent && node != till) {
-                css = (view && view.getComputedStyle != 'undefined') ?
-                      view.getComputedStyle(node, null) :
-                      node.currentStyle;
+            if (navigator.userAgent.match(/MSIE [67]/) && doc.compatMode != 'CSS1Compat') {
+                quirks = true;
+            }
 
-                if (css.position != 'static') {
-                    till = node.offsetParent;
-                } else {
-                    offset.top  += node.offsetTop;
-                    offset.left += node.offsetLeft;
+            while ((node = node.parentNode) && node != till) {
+                if (prev.position === 'fixed') {
+                    break;
                 }
 
-                node = node.offsetParent;
+                curr = view ? view(node, null) : node.currentStyle;
+
+                offset.top  -= node.scrollTop;
+                offset.left -= node.scrollLeft;
+
+                if (node === cparent) {
+                    offset.top  += node.offsetTop;
+                    offset.left += node.offsetLeft;
+
+                    if (quirks && table.test(node.tagName)) {
+                        offset.top  += parseFloat(curr.borderTopWidth)  || 0;
+                        offset.left += parseFloat(curr.borderLeftWidth) || 0;
+                    }
+
+                    pparent = cparent;
+                    cparent = node.offsetParent;
+                }
+
+                if (curr.overflow !== 'visible') {
+                    offset.top  += parseFloat(curr.borderTopWidth)  || 0;
+                    offset.left += parseFLoat(curr.borderLeftWidth) || 0;
+                }
+
+                prev = curr;
+            }
+
+            if (node === body) {
+                if (prev.position === 'relative' || prev.position === 'static') {
+                    offset.top  += body.offsetTop;
+                    offset.left += body.offsetLeft;
+                } else if (prev.position === 'fixed') {
+                    offset.top  += Math.max(doc.scrollTop,  body.scrollTop);
+                    offset.left += Math.max(doc.scrollLeft, body.scrollLeft)
+                }
             }
 
             return offset;
