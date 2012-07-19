@@ -54,6 +54,8 @@
             },
             lang : {
                 hide : 'Hide',
+                prev : '',
+                next : '',
                 weekdays : {
                     full : [
                         'Monday',
@@ -279,8 +281,8 @@
                     human
                 );
 
-                this._nodes.field.setAttribute('data-day', stdout.getDate());
-                this._nodes.field.setAttribute('data-year', stdout.getFullYear());
+                this._nodes.field.setAttribute('data-day',   stdout.getDate());
+                this._nodes.field.setAttribute('data-year',  stdout.getFullYear());
                 this._nodes.field.setAttribute('data-month', stdout.getMonth());
 
                 if (params.mirror) {
@@ -1184,7 +1186,7 @@
                 }
             }
 
-            return this._lang;
+            return pttp._lang;
         },
         /**
          * Turn a date object into object with locale settings
@@ -1193,9 +1195,12 @@
          *
          * @this    {Cal}
          * @param   {Date}
+         * @param   {Boolean|String}
          * @returns {Object}
          */
-        human : function(raw) {
+        human : function(raw, tmpl) {
+            tmpl = tmpl || false;
+
             if (typeof raw == 'string') {
                 raw = Cal.parse(raw);
             }
@@ -1206,11 +1211,11 @@
                 year    = raw.getFullYear(),
                 month   = raw.getMonth() + 1,
                 weekday = raw.getDay(),
-                lang    = Cal.prototype._lang ?
-                          Cal.prototype._lang :
-                          Cal.prototype._default.lang,
+                pttp    = Cal.prototype,
+                lang    = pttp._lang ?
+                          pttp._lang :
+                          pttp._default.lang,
                 human   = {
-                    days : new Date(year, (month + 1), -1),
                     day : {
                         num  : day - 0,
                         nums : (day + '').length < 2 ? '0' + day : day,
@@ -1221,16 +1226,20 @@
                     year : {
                         full : year,
                         part : (year + '').substring(2),
-                        leap : new Date(year, 1, 29) == 1 ? true : false
+                        leap : new Date(year, 1, 29).getDate() != 1 ? true : false
                     },
                     month : {
                         num  : month,
                         nums : (month + '').length < 2 ? '0' + month : month,
+                        days : new Date(year, (month + 1), -1),
                         full : '',
                         decl : '',
                         part : ''
                     }
                 };
+
+            // Number of days in year (leap or normal)
+            human.year.days = human.year.leap ? 366 : 365;
 
             // Days of week names
             tmp = human.day.week - 1;
@@ -1242,6 +1251,12 @@
             human.month.full = lang.monthes.full[tmp];
             human.month.decl = lang.monthes.decl[tmp];
             human.month.part = lang.monthes.part[tmp];
+
+            // Return a parsed template if the second
+            // argument is given
+            if (typeof tmpl == 'string') {
+                return pttp._tmpl(tmpl, human);
+            }
 
             return human;
         },
@@ -1255,16 +1270,19 @@
          */
         _install : function() {
             var
-                pos   = 0,
-                alias = '',
-                cal   = null,
-                tin   = null,
-                self  = this,
-                tout  = null,
-                hide  = null,
-                node  = null;
+                pos    = 0,
+                alias  = '',
+                cal    = null,
+                tin    = null,
+                self   = this,
+                tout   = null,
+                hide   = null,
+                node   = null,
+                lang   = this._lang,
+                nodes  = this._nodes,
+                params = this._params;
 
-            if (!this._params.no_tail) {
+            if (!params.no_tail) {
                 // Background of calendar`s tail
                 tin = document.createElement('div');
                 tin.className = 'b-cal__tail-in';
@@ -1277,10 +1295,10 @@
             // «Hide» link
             hide = document.createElement('div');
             hide.className = 'b-cal__hide';
-            hide.innerHTML = this._lang.hide;
+            hide.innerHTML = lang.hide;
 
             // Parent calendar`s node
-            cal = this._nodes.block = document.createElement('div');
+            cal = nodes.block = document.createElement('div');
             cal.className = 'b-cal';
 
             // Turn on quirks styles detector
@@ -1289,54 +1307,56 @@
             }
 
             // Append user defined id
-            if (this._params.id) {
-                cal.className += ' b-cal_id_' + this._params.id;
+            if (params.id) {
+                cal.className += ' b-cal_id_' + params.id;
             }
 
             // «Previous» arrow
-            this._nodes.prev = document.createElement('div');
-            this._nodes.prev.className = 'b-cal__prev';
+            nodes.prev = document.createElement('div');
+            nodes.prev.className = 'b-cal__prev';
+            nodes.prev.innerHTML = lang.prev;
 
             // «Next» arrow
-            this._nodes.next = document.createElement('div');
-            this._nodes.next.className =  'b-cal__next';
+            nodes.next = document.createElement('div');
+            nodes.next.className =  'b-cal__next';
+            nodes.next.innerHTML = lang.next;
 
             // Month`s name holder
-            this._nodes.month = document.createElement('div');
-            this._nodes.month.className = 'b-cal__hat';
+            nodes.month = document.createElement('div');
+            nodes.month.className = 'b-cal__hat';
 
             // Month days holder
-            this._nodes.days = document.createElement('div');
-            this._nodes.days.className = 'b-cal__days';
+            nodes.days = document.createElement('div');
+            nodes.days.className = 'b-cal__days';
 
             // Weekdays holder
-            this._nodes.week = document.createElement('div');
-            this._nodes.week.className = 'b-cal__week';
+            nodes.week = document.createElement('div');
+            nodes.week.className = 'b-cal__week';
 
             // Weekdays
             for (pos = 0; pos < 7; pos++) {
                 node = document.createElement('div');
                 node.className = 'b-cal__weekday';
-                node.innerHTML = this._lang.weekdays.part[pos];
+                node.innerHTML = lang.weekdays.part[pos];
 
-                this._nodes.week.appendChild(node);
+                nodes.week.appendChild(node);
             }
 
             // Append all created stuff
-            if (this._params.no_tail) {
+            if (params.no_tail) {
                 cal.className += ' b-cal_no_tail';
             } else {
                 cal.appendChild(tout);
                 cal.appendChild(tin);
             }
 
-            cal.appendChild(this._nodes.month);
-            cal.appendChild(this._nodes.prev);
-            cal.appendChild(this._nodes.next);
-            cal.appendChild(this._nodes.week);
-            cal.appendChild(this._nodes.days);
+            cal.appendChild(nodes.month);
+            cal.appendChild(nodes.prev);
+            cal.appendChild(nodes.next);
+            cal.appendChild(nodes.week);
+            cal.appendChild(nodes.days);
             cal.appendChild(hide);
-            this._nodes.target.appendChild(cal);
+            nodes.target.appendChild(cal);
 
             this._alive();
 

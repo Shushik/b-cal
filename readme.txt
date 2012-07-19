@@ -389,9 +389,12 @@
                  | — string contains date
     ----------------------------------------------------------------------
      .human()    | Get an object with humanized and localized Date values
+                 | or a template parsed string if the second argument
+                 | is given
                  |
                  | Arguments:
                  | — Date object
+                 | — Template string
     ----------------------------------------------------------------------
      .count()    | Make all counts for the currently shown month
                  |
@@ -437,7 +440,11 @@
 
      NAME     | DESCRIPTION
     ======================================================================
-     hide     | A string with a next for the «Hide» calendar element
+     hide     | A string with a text for the «Hide» calendar element
+    ----------------------------------------------------------------------
+     prev     | A string with a text for the «Previous» arrow
+    ----------------------------------------------------------------------
+     next     | A string with a text for the «next» arrow
     ----------------------------------------------------------------------
      weekdays | Object, contains two arrays with short and full weekdays
               |
@@ -483,22 +490,21 @@
            | — part — shortened weekday name from a loaded vocabulary
            | — full — full weekday name from a loaded vocabulary
     ----------------------------------------------------------------------
-     days  | A number of days in a chosen month
-    ----------------------------------------------------------------------
      year  | An object with a chosen year data
            |
            | Structure:
+           | — leap — true in case of leap year
+           | — days — number of days in year
            | — part — two digits year number
            | — full — four digits year number
-           | — leap — true in case of leap year
     ----------------------------------------------------------------------
      month | An object with a chosen month data
            |
            | Structure:
            | — num  _ month number without a leading zero
            | — nums — month number with a leading zero
+           | — days — number of days in month
            | — part — shortened month name from a loaded vocabulary
            | — full — full month name from a loaded vocabulary
            | — decl — declentioned month name from a loaded vocabulary
     ======================================================================
-
