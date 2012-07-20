@@ -251,19 +251,24 @@
              * @private
              */
             this._nodes = {
-                days   : null,
-                prev   : null,
-                next   : null,
-                week   : null,
-                items  : {
-                    alias   : '',
-                    list    : [],
-                    chosen  : null,
-                    clicked : null
+                days    : null,
+                prev    : null,
+                next    : null,
+                week    : null,
+                items   : {
+                    list : []
                 },
-                block  : null,
-                field  : field,
-                target : target
+                block   : null,
+                field   : field,
+                target  : target,
+                chosen  : {
+                    alias : '',
+                    node  : null
+                },
+                clicked : {
+                    alias : '',
+                    node  : null
+                }
             };
 
             // Setup the date in field by the default
@@ -280,6 +285,10 @@
                     params.tmpl.stdout,
                     human
                 );
+
+                this._nodes.chosen.alias = stdout.getFullYear() + '-' +
+                                           stdout.getMonth() + '-' +
+                                           stdout.getDate();
 
                 this._nodes.field.setAttribute('data-day',   stdout.getDate());
                 this._nodes.field.setAttribute('data-year',  stdout.getFullYear());
@@ -485,13 +494,16 @@
          * Go to needed date
          *
          * @this    {Cal}
-         * @param   {String|Date}
-         * @returns {Cal}
+         * @param   {Boolean|String|Date}
+         * @returns {undefined}
          */
         jump : function(to) {
             to = to || false;
 
             var
+                day   = 0,
+                year  = 0,
+                month = 0,
                 val   = this._nodes.field[this._way],
                 type  = typeof to,
                 min   = this._min,
@@ -513,9 +525,15 @@
                 raw = max;
             }
 
-            this._draw(raw, true);
+            day   = raw.getDate();
+            year  = raw.getFullYear();
+            month = raw.getMonth();
 
-            return this;
+            this._nodes.chosen.alias = year + '-' +
+                                       month + '-' +
+                                       day;
+
+            this._draw(raw);
         },
         /**
          * Get or set the maximal calendar limit
@@ -585,15 +603,16 @@
          */
          reset : function() {
             var
-                nodes = this._nodes;
+                nodes  = this._nodes,
+                params = this._params;
 
-             this._min = this._params.min_date;
-             this._now = this._params.now_date;
-             this._max = this._params.max_date;
+             this._min = params.min_date;
+             this._now = params.now_date;
+             this._max = params.max_date;
 
              Cal.count(this._now);
 
-             if (nodes.items.chosen) {
+             if (nodes.chosen.node) {
                  this.deselect();
              }
 
@@ -620,8 +639,8 @@
                 params   = this._params,
                 tmpl     = params.tmpl,
                 mirror   = null,
-                chosen   = this._nodes.items.chosen,
-                clicked  = this._nodes.items.clicked,
+                chosen   = this._nodes.chosen.node,
+                clicked  = this._nodes.clicked.node,
                 tangled  = this._tangled,
                 relation = tangled ? tangled.relation : null,
                 instance = tangled ? tangled.instance : null;
@@ -632,7 +651,7 @@
             }
 
             // Set the selection to the currently selected item
-            chosen = this._nodes.items.chosen = clicked;
+            chosen = this._nodes.chosen.node = clicked;
             chosen.className += ' b-cal__day_is_chosen';
 
             // Get the chosen date raw and human objects
@@ -641,13 +660,13 @@
             month = chosen.getAttribute('data-month') - 0;
             raw1  = new Date(year, month, day);
 
-            this._nodes.items.alias = year + '-' +
-                                      month + '-' +
-                                      day;
+            this._nodes.chosen.alias = year + '-' +
+                                       month + '-' +
+                                       day;
 
             // Set values into tangled calendar`s fields
             if (tangled) {
-                chosen = instance._nodes.items.chosen;
+                chosen = instance._nodes.chosen.node;
                 tmpl   = instance._params.tmpl;
                 raw2   = chosen ?
                          new Date(
@@ -746,10 +765,11 @@
          */
         deselect : function() {
             var
-                items   = this._nodes.items,
-                chosen  = items.chosen,
-                alias   = items.alias,
-                clicked = items.clicked;
+                nodes   = this._nodes,
+                items   = nodes.items,
+                chosen  = nodes.chosen.node,
+                alias   = nodes.chosen.alias,
+                clicked = nodes.clicked.node;
 
             // Deselect selected item
             chosen.className = chosen.className.replace(' b-cal__day_is_chosen', '');
@@ -1322,8 +1342,8 @@
             nodes.next.innerHTML = lang.next;
 
             // Month`s name holder
-            nodes.month = document.createElement('div');
-            nodes.month.className = 'b-cal__hat';
+            nodes.hat = document.createElement('div');
+            nodes.hat.className = 'b-cal__hat';
 
             // Month days holder
             nodes.days = document.createElement('div');
@@ -1350,7 +1370,7 @@
                 cal.appendChild(tin);
             }
 
-            cal.appendChild(nodes.month);
+            cal.appendChild(nodes.hat);
             cal.appendChild(nodes.prev);
             cal.appendChild(nodes.next);
             cal.appendChild(nodes.week);
@@ -1369,66 +1389,31 @@
          *
          * @this    {Cal}
          * @param   {Date}
-         * @param   {Boolean}
-         * @returns {Cal}
+         * @returns {undefined}
          */
-        _draw : function(now, pre) {
-            pre = pre || false;
-
+        _draw : function(now) {
             var
-                check     = false,
-                choose    = false,
-                select    = false,
-                holiday   = false,
-                day       = 0,
-                year      = 0,
-                month     = 0,
-                alias     = '',
-                origin    = this._now.getFullYear() + '-' +
-                            this._now.getMonth() + '-' +
-                            this._now.getDate(),
-                preorigin = now.getFullYear() + '-' +
-                            now.getMonth() + '-' +
-                            now.getDate(),
-                tangled   = '',
-                min       = this._min,
-                max       = this._max,
-                tmp       = null,
-                node      = null,
-                nodes     = this._nodes,
-                data      = this._data = Cal.count(now),
-                hat       = Cal.human(data.curr.raw),
-                list      = nodes.items.list = [],
-                tmpl      = this._params.tmpl,
-                selected  = this._nodes.items.alias,
-                holidays  = this._holidays;
-
-            // Select tangled selection
-            if (this._tangled && this._tangled.instance._nodes.items.alias) {
-                tangled = this._tangled.instance._nodes.items.alias;
-                tmp     = tangled.split('-');
-
-                // Switch to the next or previous month if tangled selection is the first
-                // or the last day of month
-                if (tmp[0] == data.curr.year && tmp[1] == data.curr.month) {
-                    if (this._tangled.relation == '<' && tmp[2] == data.curr.end) {
-                        return this.next();
-                    } else if (this._tangled.relation == '>' && tmp[2] == 1) {
-                        return this.prev();
-                    }
-                }
-            }
+                check = false,
+                day   = 0,
+                year  = 0,
+                month = 0,
+                min   = this._min,
+                max   = this._max,
+                data  = this._data = Cal.count(now),
+                tmpl  = this._params.tmpl,
+                nodes = this._nodes,
+                days  = nodes.days,
+                list  = nodes.items.list;
 
             // Clean previous calendar days
             nodes.days.innerHTML = '';
 
             // Set calendar`s hat value
-            nodes.month.innerHTML = this._tmpl(tmpl.hat, hat);
+            nodes.hat.innerHTML = Cal.human(data.curr.raw, tmpl.hat);
 
             // Days in past
             year  = data.prev.year;
             month = data.prev.month;
-            alias = year + '-' + month + '-';
             check = Cal.inside(
                 new Date(
                     year,
@@ -1439,76 +1424,46 @@
                 max
             );
 
-            nodes.prev.title     = (check ? this._tmpl(tmpl.prev, this.human(data.prev.raw, this._lang)) : '');
+            nodes.prev.title     = check ? this.human(data.prev.raw, tmpl.prev) : '';
             nodes.prev.className = 'b-cal__prev' + (check ? '' : ' b-cal__prev_is_disabled');
 
             for (day = data.prev.from; day <= data.prev.till; day++) {
-                holiday = Cal.holiday(year, month, day);
+                node = this._day2node(day, month, year, 'past', check);
 
-                node = this._day2node(day, month, year, 'past', check, false, holiday, tangled);
-
-                nodes.days.appendChild(node);
-
-                nodes.items.list.push(node);
+                days.appendChild(node);
+                list.push(node);
             }
 
             // Days in presence
             year  = data.curr.year;
             month = data.curr.month;
-            alias = year + '-' + month + '-';
 
             for (day = data.curr.from; day <= data.curr.till; day++) {
-                choose  = false;
-                select  = false;
-                check   = this.inside(
+                check   = Cal.inside(
                     new Date(year, month, day),
                     min,
                     max
                 );
 
-                holiday = Cal.holiday(year, month, day);
+                node = this._day2node(day, month, year, 'presence', check);
 
-                //
-                if (check && alias + day == origin) {
-                    choose = true;
-                }
-
-                //
-                if (alias + day == selected && pre && alias + day == preorigin) {
-                    select = true;
-                }
-
-                node = this._day2node(day, month, year, 'presence', check, choose, holiday, tangled);
-
-                nodes.days.appendChild(node);
-
+                days.appendChild(node);
                 list.push(node);
             }
 
             // Days in future
             year  = data.next.year;
             month = data.next.month;
-            check = this.inside(
-                new Date(data.next.year, data.next.month, data.next.from),
-                min,
-                max,
-                true
-            );
 
-            nodes.next.title     = (check ? this._tmpl(tmpl.next, this.human(data.next.raw, this._lang)) : '');
+            nodes.next.title     = check ? this.human(data.next.raw, tmpl.next) : '';
             nodes.next.className = 'b-cal__next' + (!check ? ' b-cal__next_is_disabled' : '');
 
             for (day = data.next.from; day <= data.next.till; day++) {
-                holiday = Cal.holiday(year, month, day);
+                node = this._day2node(day, month, year, 'future', check);
 
-                node = this._day2node(day, month, year, 'future', check, false, holiday, tangled);
-
-                nodes.days.appendChild(node);
-
+                days.appendChild(node);
                 list.push(node);
             }
-
-            return true;
         },
         /**
          * Create a node for day in calendar
@@ -1525,36 +1480,55 @@
          * @param   {String}
          * @returns {DOMNode}
          */
-        _day2node : function(day, month, year, when, check, choose, holiday, tangled) {
+        _day2node : function(day, month, year, when, check) {
             var
-                node  = document.createElement('div'),
-                items = this._nodes.items;
+                current  = '',
+                tangled  = this._tangled ?
+                          this._tangled.instance._nodes.chosen.alias :
+                          '',
+                selected = this._nodes.chosen.alias,
+                alias    = year + '-' + month + '-' + day,
+                node     = document.createElement('div'),
+                params   = this._params;
 
+            // Set base node properties
             node.className = 'b-cal__day';
             node.innerHTML = day;
 
-            //
-            if (when != 'presence' || choose) {
+            // Check the current date
+            current = this._now.getFullYear() + '-' +
+                      this._now.getMonth() + '-' +
+                      this._now.getDate();
+
+            if (when != 'presence' || alias == current) {
                 node.className += ' b-cal__day_in_' + when;
             }
 
-            //
-            if (!check && !choose) {
-                node.className += ' b-cal__day_is_disabled';
-            } else {
+            // Check if the date is betweet min and max
+            // available values
+            if (check) {
                 node.className += ' b-cal__day_is_enabled';
+            } else {
+                node.className += ' b-cal__day_is_disabled';
             }
 
-            //
-            if (holiday) {
+            // Check if the date is holiday or weekend
+            if (Cal.holiday(year, month, day)) {
                 node.className += ' b-cal__day_is_holiday';
             }
 
-            if (year + '-' + month + '-' + day == tangled) {
+            // Select the tangled date
+            if (tangled && alias == tangled) {
                 node.className += ' b-cal__day_is_tangled';
             }
 
-            //
+            // Select the chosen date
+            if (selected && alias == selected) {
+                node.className += ' b-cal__day_is_chosen';
+                this._nodes.clicked.node = node;
+            }
+
+            // Save date into data attributes
             node.setAttribute('data-month', month);
             node.setAttribute('data-year',  year);
             node.setAttribute('data-day',   day);
@@ -1679,6 +1653,20 @@
             return this;
         },
         /**
+         * Go to needed date wrapper
+         *
+         * @this    {Cal}
+         * @param   {Boolean|String|Date}
+         * @returns {undefined}
+         */
+        _jump : function(to) {
+            this.jump(to);
+
+            if (this._handlers.select) {
+                this._nodes.clicked.node.click();
+            }
+        },
+        /**
          *
          *
          * @private
@@ -1794,7 +1782,7 @@
                         clearTimeout(this._timer);
                     }
 
-                    this._timer = setTimeout(this._proxy(this.jump, this), 500);
+                    this._timer = setTimeout(this._proxy(this._jump, this), 500);
                 break;
 
             }
@@ -1915,7 +1903,7 @@
                 };
                 data.human = Cal.human(data.raw);
 
-                this._nodes.items.clicked = node;
+                this._nodes.clicked.node = node;
 
                 if (this._handlers.select) {
                     this._handlers.select.call(
@@ -1933,7 +1921,7 @@
                     this.select();
                 }
             } else if (switcher.match('b-cal__day_is_chosen')) {
-                this._nodes.items.clicked = node;
+                this._nodes.clicked.node = node;
 
                 if (this._handlers.deselect) {
                     this._handlers.deselect.call(
