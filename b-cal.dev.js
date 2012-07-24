@@ -512,13 +512,12 @@
                 year  = 0,
                 month = 0,
                 val   = this._nodes.field[this._way],
-                type  = typeof to,
                 min   = this._min,
                 max   = this._max,
                 raw   = null,
                 node  = null;
 
-            if (type == 'object') {
+            if (to instanceof Date) {
                 raw = to;
             } else {
                 raw = Cal.parse(to ? to : val);
@@ -1770,7 +1769,7 @@
         _jump : function(to) {
             this.jump(to);
 
-            if (this._handlers.select) {
+            if (this._nodes.clicked.node) {
                 this._nodes.clicked.node.click();
             }
         },
