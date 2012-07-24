@@ -375,6 +375,22 @@
 
      NAME        | DESCRIPTION
     ======================================================================
+     .leap()     | Check if the year is leap
+                 |
+                 | Arguments:
+                 | — year you want to check
+    ----------------------------------------------------------------------
+     .days()     | Count the number of days in a month
+                 |
+                 | Arguments:
+                 | — number of month
+    ----------------------------------------------------------------------
+     .distance() | Get the distance betweet two dates
+                 |
+                 | Arguments:
+                 | — the first date
+                 | — the second date
+    ----------------------------------------------------------------------
      .order()    | Take an array of Date objects and sort it ascending
                  | way. Return sorted array or the minimal or maximal
                  | value from it

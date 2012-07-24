@@ -56,6 +56,13 @@
                 hide : 'Hide',
                 prev : '',
                 next : '',
+                plural : {
+                    day : [
+                        'days',
+                        'day',
+                        'day'
+                    ]
+                },
                 weekdays : {
                     full : [
                         'Monday',
@@ -1246,12 +1253,12 @@
                     year : {
                         full : year,
                         part : (year + '').substring(2),
-                        leap : new Date(year, 1, 29).getDate() != 1 ? true : false
+                        leap : Cal.leap(year)
                     },
                     month : {
                         num  : month,
                         nums : (month + '').length < 2 ? '0' + month : month,
-                        days : new Date(year, (month + 1), -1),
+                        days : Cal.days(raw),
                         full : '',
                         decl : '',
                         part : ''
@@ -1279,6 +1286,107 @@
             }
 
             return human;
+        },
+        /**
+         * Check if a year is leap
+         *
+         * @static
+         *
+         * @this    {Cal}
+         * @param   {Number|String|Date}
+         * @returns {Boolean}
+         */
+        leap : function(year) {
+            if (year instanceof Date) {
+                year = year.getFullYear();
+            }
+
+            return new Date(year, 1, 29).getDate() != 1 ?
+                   true :
+                   false;
+        },
+        /**
+         * Count the number of days in a month
+         *
+         * @static
+         *
+         * @this    {Cal}
+         * @param   {String|Date}
+         * @returns {Number}
+         */
+        days : function(raw) {
+            if (!raw instanceof Date) {
+                raw = Cal.parse(raw);
+            }
+
+            return new Date(
+                raw.getFullYear(),
+                raw.getMonth() + 1,
+                0
+            ).getDate();
+        },
+        /**
+         * Get the distance between the dates
+         *
+         * @static
+         *
+         * @this    {Cal}
+         * @param   {String|Date}
+         * @param   {String|Date}
+         * @returns {Number}
+         */
+        distance : function(from, till) {
+            till = till || new Date();
+
+            // In case of strings or other stuff
+            if (!from instanceof Date) {
+                from = Cal.parse(from);
+            }
+
+            // In case of strings or other stuff
+            if (!till instanceof Date) {
+                till = Cal.parse(till);
+            }
+
+            var
+                tmp = 0,
+                out = {
+                    days    : 0,
+                    hours   : 0,
+                    weeks   : 0,
+                    years   : 0,
+                    seconds : 0,
+                    minutes : 0,
+                    monthes : 0
+                };
+
+            // Just in case of crazy coder
+            if (from > till) {
+                tmp  = till;
+                till = from;
+                from = tmp;
+            }
+
+            // Get the raw number of passed years between the dates
+            tmp = (till.getFullYear() - from.getFullYear()) * 12;
+
+            // Get the number of monthes and years
+            out.monthes = (tmp - from.getMonth()) + till.getMonth();
+            out.years   = Math.floor(out.monthes / 12);
+
+            // Get the raw number of milliseconds between the dates
+            tmp = till.getTime() - from.getTime();
+
+            // Get the seconds, minutes and hours
+            out.seconds = Math.floor(tmp / 1000);
+            out.minutes = Math.floor(out.seconds / 60);
+            out.hours   = Math.floor(out.minutes / 60);
+
+            // Get the days and weeks
+            out.days  = Math.floor(out.hours / 24);
+            out.weeks = Math.floor(out.days / 7);
+
+            return out;
         },
         /**
          * Create an instance variables and DOM tree
@@ -2226,6 +2334,8 @@
 
 
     // Aliases for «static» functions
+    Cal.days     = Cal.prototype.days;
+    Cal.leap     = Cal.prototype.leap;
     Cal.lang     = Cal.prototype.lang;
     Cal.human    = Cal.prototype.human;
     Cal.order    = Cal.prototype.order;
@@ -2234,6 +2344,7 @@
     Cal.inside   = Cal.prototype.inside;
     Cal.weekend  = Cal.prototype.weekend;
     Cal.holiday  = Cal.prototype.holiday;
+    Cal.distance = Cal.prototype.distance;
     Cal.holidays = Cal.prototype.holidays;
 
 
