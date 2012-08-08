@@ -2296,18 +2296,25 @@
                 }
             }
 
-            // Stop bubbling
-            if (!opera && !event.stopPropagation) {
-                event.stopPropagation = function() {
-                    this.cancelBubble = true;
-                };
-            }
+            if (!opera) {
+                // Related target for IE
+                if (!event.relatedTarget) {
+                    event.relatedTarget = event.fromElement;
+                }
 
-            // Prevent default action
-            if (!opera && !event.preventDefault) {
-                event.preventDefault = function() {
-                    this.returnValue = false;
-                };
+                // Stop bubbling
+                if (!event.stopPropagation) {
+                    event.stopPropagation = function() {
+                        this.cancelBubble = true;
+                    };
+                }
+
+                // Prevent default action
+                if (!event.preventDefault) {
+                    event.preventDefault = function() {
+                        this.returnValue = false;
+                    };
+                }
             }
 
             return event;
