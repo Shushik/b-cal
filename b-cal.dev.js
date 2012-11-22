@@ -842,11 +842,12 @@
                 day       = 0,
                 year      = 0,
                 month     = 0,
-                alias     = '',
                 sep       = '[\\s\\.,\\/\-]',
+                alias     = '',
                 tmp       = [],
                 pttp      = Cal.prototype,
                 lang      = pttp._monthes2replaces(),
+                dirt      = null,
                 origin    = new Date(),
                 monthes   = pttp._default.lang.monthes.part;
 
