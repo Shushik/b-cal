@@ -1,4 +1,4 @@
-;Cal = (function() {
+;Affota._modules.calendar = (function() {
 
 
     /**
@@ -12,8 +12,8 @@
      * @this    {Cal}
      * @param   {DOMNode}
      * @param   {DOMNode}
-     * @param   {Object}
-     * @param   {Object}
+     * @param   {object}
+     * @param   {object}
      * @returns {Cal}
      */
     function
@@ -135,8 +135,8 @@
          * @this    {Cal}
          * @param   {DOMNode}
          * @param   {DOMNode}
-         * @param   {Object}
-         * @param   {Object}
+         * @param   {object}
+         * @param   {object}
          * @returns {Cal}
          */
         init : function(target, field, params, handlers) {
@@ -393,7 +393,7 @@
          *
          * @this    {Cal}
          * @param   {Cal}
-         * @param   {String}
+         * @param   {string}
          * @returns {Cal}
          */
         tangle : function(instance, relation) {
@@ -455,7 +455,7 @@
             }
 
             // Add visibility class
-            this._nodes.block.className += ' b-cal_is_visible';
+            this._nodes.block.className += ' b-calendar_is_visible';
 
             return this;
         },
@@ -468,7 +468,7 @@
         hide : function() {
             // Remove visibility class
             this._nodes.block.className = this._nodes.block.className
-                                          .replace(' b-cal_is_visible', '');
+                                          .replace(' b-calendar_is_visible', '');
 
             // Change visibility indicator
             this.shown = false;
@@ -653,12 +653,12 @@
 
             // Remove selection from the previous selected item
             if (chosen) {
-                chosen.className = chosen.className.replace(' b-cal__day_is_chosen', '');
+                chosen.className = chosen.className.replace(' b-calendar__day_is_chosen', '');
             }
 
             // Set the selection to the currently selected item
             chosen = this._nodes.chosen.node = clicked;
-            chosen.className += ' b-cal__day_is_chosen';
+            chosen.className += ' b-calendar__day_is_chosen';
 
             // Get the chosen date raw and human objects
             day   = chosen.getAttribute('data-day') - 0;
@@ -778,7 +778,7 @@
                 clicked = nodes.clicked.node;
 
             // Deselect selected item
-            chosen.className = chosen.className.replace(' b-cal__day_is_chosen', '');
+            chosen.className = chosen.className.replace(' b-calendar__day_is_chosen', '');
 
             alias   = items.alias = '';
             chosen  = items.chosen = null;
@@ -799,8 +799,8 @@
          * @static
          *
          * @this    {Cal}
-         * @param   {Array}
-         * @param   {String}
+         * @param   {array}
+         * @param   {string}
          * @returns {Date}
          */
         order : function(dates, which) {
@@ -827,7 +827,7 @@
          * @static
          *
          * @this    {Cal}
-         * @param   {String}
+         * @param   {string}
          * @returns {Date}
          */
         parse : function(dstr) {
@@ -842,12 +842,12 @@
                 day       = 0,
                 year      = 0,
                 month     = 0,
-                sep       = '[\\s\\.,\\/\-]',
+                dirt      = '',
                 alias     = '',
+                sep       = '[\\s\\.,\\/\-]',
                 tmp       = [],
                 pttp      = Cal.prototype,
                 lang      = pttp._monthes2replaces(),
-                dirt      = null,
                 origin    = new Date(),
                 monthes   = pttp._default.lang.monthes.part;
 
@@ -926,6 +926,11 @@
             // Check if the cheated date is correct
             if (dirt.getDate()) {
                 return dirt;
+            }
+
+            // Cut off the time part for IE
+            if (dstr.match(/\dT\d/ig)) {
+                dstr = dstr.split(/T/ig)[0];
             }
 
             if (dstr.match(new RegExp('\\d{4}' + sep + '\\d{1,2}' + sep + '\\d{1,2}'))) {
@@ -1013,7 +1018,7 @@
          *
          * @this    {Cal}
          * @param   {Date}
-         * @returns {Object}
+         * @returns {object}
          */
         count : function(now) {
             now = now || new Date();
@@ -1074,7 +1079,7 @@
          * @param   {Date}
          * @param   {Date}
          * @param   {Date}
-         * @returns {Boolean}
+         * @returns {boolean}
          */
         inside : function(now, min, max, t) {
             if (now > min && now < max) {
@@ -1089,10 +1094,10 @@
          * @static
          *
          * @this    {Cal}
-         * @param   {Number}
-         * @param   {Number}
-         * @param   {Number}
-         * @returns {Boolean}
+         * @param   {number}
+         * @param   {number}
+         * @param   {number}
+         * @returns {boolean}
          */
         weekend : function(year, month, day) {
             day   -= 0;
@@ -1114,10 +1119,10 @@
          * @static
          *
          * @this    {Cal}
-         * @param   {Number}
-         * @param   {Number}
-         * @param   {Number}
-         * @returns {Boolean}
+         * @param   {number}
+         * @param   {number}
+         * @param   {number}
+         * @returns {boolean}
          */
         holiday : function(year, month, day) {
             day   += '';
@@ -1156,8 +1161,8 @@
          * @static
          *
          * @this    {Cal}
-         * @param   {Array}
-         * @returns {Array}
+         * @param   {array}
+         * @returns {array}
          */
         holidays : function(data) {
             var
@@ -1190,7 +1195,7 @@
          * @static
          *
          * @this    {Cal}
-         * @param   {Object}
+         * @param   {object}
          * @returns {Cal|Object}
          */
         lang : function(given) {
@@ -1223,7 +1228,7 @@
          * @this    {Cal}
          * @param   {Date}
          * @param   {Boolean|String}
-         * @returns {Object}
+         * @returns {object}
          */
         human : function(raw, tmpl) {
             tmpl = tmpl || false;
@@ -1294,7 +1299,7 @@
          *
          * @this    {Cal}
          * @param   {Number|String|Date}
-         * @returns {Boolean}
+         * @returns {boolean}
          */
         leap : function(year) {
             if (year instanceof Date) {
@@ -1312,7 +1317,7 @@
          *
          * @this    {Cal}
          * @param   {String|Date}
-         * @returns {Number}
+         * @returns {number}
          */
         days : function(raw) {
             if (!raw instanceof Date) {
@@ -1333,7 +1338,7 @@
          * @this    {Cal}
          * @param   {String|Date}
          * @param   {String|Date}
-         * @returns {Number}
+         * @returns {number}
          */
         distance : function(from, till) {
             till = till || new Date();
@@ -1413,58 +1418,58 @@
             if (!params.no_tail) {
                 // Background of calendar`s tail
                 tin = document.createElement('div');
-                tin.className = 'b-cal__tail-in';
+                tin.className = 'b-calendar__tail-in';
 
                 // Border of calendar`s tail
                 tout = document.createElement('div');
-                tout.className = 'b-cal__tail-out';
+                tout.className = 'b-calendar__tail-out';
             }
 
             // «Hide» link
             hide = document.createElement('div');
-            hide.className = 'b-cal__hide';
+            hide.className = 'b-calendar__hide';
             hide.innerHTML = lang.hide;
 
             // Parent calendar`s node
             cal = nodes.block = document.createElement('div');
-            cal.className = 'b-cal';
+            cal.className = 'b-calendar';
 
             // Turn on quirks styles detector
             if (document.documentElement.clientHeight == 0) {
-                cal.className += ' b-cal_mode_quirks';
+                cal.className += ' b-calendar_mode_quirks';
             }
 
             // Append user defined id
             if (params.id) {
-                cal.className += ' b-cal_id_' + params.id;
+                cal.className += ' b-calendar_id_' + params.id;
             }
 
             // «Previous» arrow
             nodes.prev = document.createElement('div');
-            nodes.prev.className = 'b-cal__prev';
+            nodes.prev.className = 'b-calendar__prev';
             nodes.prev.innerHTML = lang.prev;
 
             // «Next» arrow
             nodes.next = document.createElement('div');
-            nodes.next.className =  'b-cal__next';
+            nodes.next.className =  'b-calendar__next';
             nodes.next.innerHTML = lang.next;
 
             // Month`s name holder
             nodes.hat = document.createElement('div');
-            nodes.hat.className = 'b-cal__hat';
+            nodes.hat.className = 'b-calendar__hat';
 
             // Month days holder
             nodes.days = document.createElement('div');
-            nodes.days.className = 'b-cal__days';
+            nodes.days.className = 'b-calendar__days';
 
             // Weekdays holder
             nodes.week = document.createElement('div');
-            nodes.week.className = 'b-cal__week';
+            nodes.week.className = 'b-calendar__week';
 
             // Weekdays
             for (pos = 0; pos < 7; pos++) {
                 node = document.createElement('div');
-                node.className = 'b-cal__weekday';
+                node.className = 'b-calendar__weekday';
                 node.innerHTML = lang.weekdays.part[pos];
 
                 nodes.week.appendChild(node);
@@ -1472,7 +1477,7 @@
 
             // Append all created stuff
             if (params.no_tail) {
-                cal.className += ' b-cal_no_tail';
+                cal.className += ' b-calendar_no_tail';
             } else {
                 cal.appendChild(tout);
                 cal.appendChild(tin);
@@ -1533,7 +1538,7 @@
             );
 
             nodes.prev.title     = check ? this.human(data.prev.raw, tmpl.prev) : '';
-            nodes.prev.className = 'b-cal__prev' + (check ? '' : ' b-cal__prev_is_disabled');
+            nodes.prev.className = 'b-calendar__prev' + (check ? '' : ' b-calendar__prev_is_disabled');
 
             for (day = data.prev.from; day <= data.prev.till; day++) {
                 node = this._day2node(day, month, year, 'past', check);
@@ -1564,7 +1569,7 @@
             month = data.next.month;
 
             nodes.next.title     = check ? this.human(data.next.raw, tmpl.next) : '';
-            nodes.next.className = 'b-cal__next' + (!check ? ' b-cal__next_is_disabled' : '');
+            nodes.next.className = 'b-calendar__next' + (!check ? ' b-calendar__next_is_disabled' : '');
 
             for (day = data.next.from; day <= data.next.till; day++) {
                 node = this._day2node(day, month, year, 'future', check);
@@ -1579,13 +1584,13 @@
          * @private
          *
          * @this    {Cal}
-         * @param   {Number}
-         * @param   {Number}
-         * @param   {Number}
-         * @param   {String}
-         * @param   {Boolean}
-         * @param   {Boolean}
-         * @param   {String}
+         * @param   {number}
+         * @param   {number}
+         * @param   {number}
+         * @param   {string}
+         * @param   {boolean}
+         * @param   {boolean}
+         * @param   {string}
          * @returns {DOMNode}
          */
         _day2node : function(day, month, year, when, check) {
@@ -1600,7 +1605,7 @@
                 params   = this._params;
 
             // Set base node properties
-            node.className = 'b-cal__day';
+            node.className = 'b-calendar__day';
             node.innerHTML = day;
 
             // Check the current date
@@ -1609,30 +1614,30 @@
                       this._now.getDate();
 
             if (when != 'presence' || alias == current) {
-                node.className += ' b-cal__day_in_' + when;
+                node.className += ' b-calendar__day_in_' + when;
             }
 
             // Check if the date is betweet min and max
             // available values
             if (check) {
-                node.className += ' b-cal__day_is_enabled';
+                node.className += ' b-calendar__day_is_enabled';
             } else {
-                node.className += ' b-cal__day_is_disabled';
+                node.className += ' b-calendar__day_is_disabled';
             }
 
             // Check if the date is holiday or weekend
             if (Cal.holiday(year, month, day)) {
-                node.className += ' b-cal__day_is_holiday';
+                node.className += ' b-calendar__day_is_holiday';
             }
 
             // Select the tangled date
             if (tangled && alias == tangled) {
-                node.className += ' b-cal__day_is_tangled';
+                node.className += ' b-calendar__day_is_tangled';
             }
 
             // Select the chosen date
             if (selected && alias == selected) {
-                node.className += ' b-cal__day_is_chosen';
+                node.className += ' b-calendar__day_is_chosen';
                 this._nodes.clicked.node = node;
             }
 
@@ -1649,7 +1654,7 @@
          * @private
          *
          * @this    {Cal}
-         * @returns {Object}
+         * @returns {object}
          */
         _monthes2replaces : function() {
             var
@@ -1788,7 +1793,7 @@
                 node  = event.target,
                 field = this._nodes.field;
 
-            if (!node.className.match('b-cal') && field && node != field) {
+            if (!node.className.match('b-calendar') && field && node != field) {
                 this.hide();
             }
         },
@@ -1994,13 +1999,13 @@
                 data     = [],
                 item     = null;
 
-            if (switcher == 'b-cal__prev') {
+            if (switcher == 'b-calendar__prev') {
                 this.prev();
-            } else if (switcher == 'b-cal__next') {
+            } else if (switcher == 'b-calendar__next') {
                 this.next();
-            } else if (switcher == 'b-cal__hide') {
+            } else if (switcher == 'b-calendar__hide') {
                 this.hide();
-            } else if (switcher.match('b-cal__day_is_enabled')) {
+            } else if (switcher.match('b-calendar__day_is_enabled')) {
                 day   = node.getAttribute('data-day');
                 year  = node.getAttribute('data-year');
                 month = node.getAttribute('data-month');
@@ -2028,7 +2033,7 @@
                 } else {
                     this.select();
                 }
-            } else if (switcher.match('b-cal__day_is_chosen')) {
+            } else if (switcher.match('b-calendar__day_is_chosen')) {
                 this._nodes.clicked.node = node;
 
                 if (this._handlers.deselect) {
@@ -2052,9 +2057,9 @@
          * @private
          *
          * @this    {Cal}
-         * @param   {String}
-         * @param   {Object}
-         * @returns {String}
+         * @param   {string}
+         * @param   {object}
+         * @returns {string}
          */
         _tmpl : function(tmpl, data) {
             data = data || {};
@@ -2084,8 +2089,8 @@
          * @private
          *
          * @this    {Cal}
-         * @param   {String}
-         * @param   {Array}
+         * @param   {string}
+         * @param   {array}
          * @returns {Number|String}
          */
         _indexof : function(pin, hay) {
@@ -2118,9 +2123,9 @@
          *
          * @this    {Cal}
          * @param   {DOMNode}
-         * @param   {String}
-         * @param   {Function}
-         * @returns {Object}
+         * @param   {string}
+         * @param   {function(Event)}
+         * @returns {object}
          */
         _bind : function(target, alias, handler) {
             var
@@ -2160,9 +2165,9 @@
          *
          * @this    {Suggest}
          * @param   {DOMNode}
-         * @param   {String}
-         * @param   {Function}
-         * @returns {Object}
+         * @param   {string}
+         * @param   {function(Event)}
+         * @returns {object}
          */
         _unbind : function(target, alias, handler) {
             var
@@ -2190,7 +2195,7 @@
          * @this    {Suggest}
          * @param   {DOMNode}
          * @param   {DOMNode}
-         * @returns {Object}
+         * @returns {object}
          */
         _offsetize : function(from, till) {
             till = till || document.body;
@@ -2323,11 +2328,11 @@
         /**
          * Save a needed context for further function execution
          *
-         * @this    {Suggest}
-         * @param   {Function}
-         * @param   {Object}
-         * @param   {Array}
-         * @returns {Function}
+         * @this    {Cal}
+         * @param   {function}
+         * @param   {object}
+         * @param   {array}
+         * @returns {function}
          */
         _proxy : function(fn, ctx) {
             return function() {
