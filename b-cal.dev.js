@@ -9,12 +9,12 @@
      *
      * @constructor
      *
-     * @this    {Cal}
-     * @param   {DOMNode}
-     * @param   {DOMNode}
-     * @param   {object}
-     * @param   {object}
-     * @returns {Cal}
+     * @this   {Cal}
+     * @param  {DOMNode}
+     * @param  {DOMNode}
+     * @param  {object}
+     * @param  {object}
+     * @return {Cal}
      */
     function
         Cal(target, field, params, handlers) {
@@ -132,12 +132,12 @@
         /**
          * Initialization (immediate or delayed)
          *
-         * @this    {Cal}
-         * @param   {DOMNode}
-         * @param   {DOMNode}
-         * @param   {object}
-         * @param   {object}
-         * @returns {Cal}
+         * @this   {Cal}
+         * @param  {DOMNode}
+         * @param  {DOMNode}
+         * @param  {object}
+         * @param  {object}
+         * @return {Cal}
          */
         init : function(target, field, params, handlers) {
             params   = params   || {};
@@ -351,8 +351,8 @@
         /**
          * Kill and destroy
          *
-         * @this    {Cal}
-         * @returns {Undefined}
+         * @this   {Cal}
+         * @return {Undefined}
          */
         uninstall : function() {
             var
@@ -391,10 +391,10 @@
         /**
          * Tie up two calendar instances
          *
-         * @this    {Cal}
-         * @param   {Cal}
-         * @param   {string}
-         * @returns {Cal}
+         * @this   {Cal}
+         * @param  {Cal}
+         * @param  {string}
+         * @return {Cal}
          */
         tangle : function(instance, relation) {
             this._tangled = {
@@ -407,8 +407,8 @@
         /**
          * Show calendar
          *
-         * @this    {Cal}
-         * @returns {Cal}
+         * @this   {Cal}
+         * @return {Cal}
          */
         show : function() {
             var
@@ -462,8 +462,8 @@
         /**
          * Hide calendar
          *
-         * @this    {Cal}
-         * @returns {Boolean|Cal}
+         * @this   {Cal}
+         * @return {Boolean|Cal}
          */
         hide : function() {
             // Remove visibility class
@@ -478,8 +478,8 @@
         /**
          * Go to the previous month
          *
-         * @this    {Cal}
-         * @returns {Cal}
+         * @this   {Cal}
+         * @return {Cal}
          */
         prev : function() {
             this._draw(this._data.prev.raw);
@@ -489,8 +489,8 @@
         /**
          * Go to the previous month
          *
-         * @this    {Cal}
-         * @returns {Cal}
+         * @this   {Cal}
+         * @return {Cal}
          */
         next : function() {
             this._draw(this._data.next.raw);
@@ -500,9 +500,9 @@
         /**
          * Go to needed date
          *
-         * @this    {Cal}
-         * @param   {Boolean|String|Date}
-         * @returns {undefined}
+         * @this   {Cal}
+         * @param  {Boolean|String|Date}
+         * @return {undefined}
          */
         jump : function(to) {
             to = to || false;
@@ -544,9 +544,9 @@
         /**
          * Get or set the maximal calendar limit
          *
-         * @this    {Cal}
-         * @param   {Date}
-         * @returns {Cal|Date}
+         * @this   {Cal}
+         * @param  {Date}
+         * @return {Cal|Date}
          */
         max : function(to) {
             if (typeof to == 'string') {
@@ -564,9 +564,9 @@
         /**
          * Get or set the current calendar date
          *
-         * @this    {Cal}
-         * @param   {Date}
-         * @returns {Cal|Date}
+         * @this   {Cal}
+         * @param  {Date}
+         * @return {Cal|Date}
          */
         now : function(to) {
             if (typeof to == 'string') {
@@ -584,9 +584,9 @@
         /**
          * Get or set the minimal calendar limit
          *
-         * @this    {Cal}
-         * @param   {Date}
-         * @returns {Cal|Date}
+         * @this   {Cal}
+         * @param  {Date}
+         * @return {Cal|Date}
          */
         min : function(to) {
             if (typeof to == 'string') {
@@ -604,8 +604,8 @@
         /**
          * Restore chosen params
          *
-         * @this    {Cal}
-         * @returns {Cal}
+         * @this   {Cal}
+         * @return {Cal}
          */
          reset : function() {
             var
@@ -627,8 +627,8 @@
         /**
          * Select chosen element
          *
-         * @this    {Cal}
-         * @returns {Cal}
+         * @this   {Cal}
+         * @return {Cal}
          */
         select : function() {
             var
@@ -766,8 +766,8 @@
         /**
          * Deselect chosen elements
          *
-         * @this    {Cal}
-         * @returns {Cal}
+         * @this   {Cal}
+         * @return {Cal}
          */
         deselect : function() {
             var
@@ -798,10 +798,10 @@
          *
          * @static
          *
-         * @this    {Cal}
-         * @param   {array}
-         * @param   {string}
-         * @returns {Date}
+         * @this   {Cal}
+         * @param  {array}
+         * @param  {string}
+         * @return {Date}
          */
         order : function(dates, which) {
             which = which || false;
@@ -826,9 +826,9 @@
          *
          * @static
          *
-         * @this    {Cal}
-         * @param   {string}
-         * @returns {Date}
+         * @this   {Cal}
+         * @param  {string}
+         * @return {Date}
          */
         parse : function(dstr) {
             dstr = dstr || '';
@@ -1016,9 +1016,9 @@
          *
          * @static
          *
-         * @this    {Cal}
-         * @param   {Date}
-         * @returns {object}
+         * @this   {Cal}
+         * @param  {Date}
+         * @return {object}
          */
         count : function(now) {
             now = now || new Date();
@@ -1075,11 +1075,11 @@
          *
          * @static
          *
-         * @this    {Cal}
-         * @param   {Date}
-         * @param   {Date}
-         * @param   {Date}
-         * @returns {boolean}
+         * @this   {Cal}
+         * @param  {Date}
+         * @param  {Date}
+         * @param  {Date}
+         * @return {boolean}
          */
         inside : function(now, min, max, t) {
             if (now > min && now < max) {
@@ -1093,11 +1093,11 @@
          *
          * @static
          *
-         * @this    {Cal}
-         * @param   {number}
-         * @param   {number}
-         * @param   {number}
-         * @returns {boolean}
+         * @this   {Cal}
+         * @param  {number}
+         * @param  {number}
+         * @param  {number}
+         * @return {boolean}
          */
         weekend : function(year, month, day) {
             day   -= 0;
@@ -1118,11 +1118,11 @@
          *
          * @static
          *
-         * @this    {Cal}
-         * @param   {number}
-         * @param   {number}
-         * @param   {number}
-         * @returns {boolean}
+         * @this   {Cal}
+         * @param  {number}
+         * @param  {number}
+         * @param  {number}
+         * @return {boolean}
          */
         holiday : function(year, month, day) {
             day   += '';
@@ -1160,9 +1160,9 @@
          *
          * @static
          *
-         * @this    {Cal}
-         * @param   {array}
-         * @returns {array}
+         * @this   {Cal}
+         * @param  {array}
+         * @return {array}
          */
         holidays : function(data) {
             var
@@ -1194,9 +1194,9 @@
          *
          * @static
          *
-         * @this    {Cal}
-         * @param   {object}
-         * @returns {Cal|Object}
+         * @this   {Cal}
+         * @param  {object}
+         * @return {Cal|Object}
          */
         lang : function(given) {
             given = given || {};
@@ -1225,10 +1225,10 @@
          *
          * @static
          *
-         * @this    {Cal}
-         * @param   {Date}
-         * @param   {Boolean|String}
-         * @returns {object}
+         * @this   {Cal}
+         * @param  {Date}
+         * @param  {Boolean|String}
+         * @return {object}
          */
         human : function(raw, tmpl) {
             tmpl = tmpl || false;
@@ -1297,9 +1297,9 @@
          *
          * @static
          *
-         * @this    {Cal}
-         * @param   {Number|String|Date}
-         * @returns {boolean}
+         * @this   {Cal}
+         * @param  {Number|String|Date}
+         * @return {boolean}
          */
         leap : function(year) {
             if (year instanceof Date) {
@@ -1315,9 +1315,9 @@
          *
          * @static
          *
-         * @this    {Cal}
-         * @param   {String|Date}
-         * @returns {number}
+         * @this   {Cal}
+         * @param  {String|Date}
+         * @return {number}
          */
         days : function(raw) {
             if (!raw instanceof Date) {
@@ -1335,10 +1335,10 @@
          *
          * @static
          *
-         * @this    {Cal}
-         * @param   {String|Date}
-         * @param   {String|Date}
-         * @returns {number}
+         * @this   {Cal}
+         * @param  {String|Date}
+         * @param  {String|Date}
+         * @return {number}
          */
         distance : function(from, till) {
             till = till || new Date();
@@ -1398,8 +1398,8 @@
          *
          * @private
          *
-         * @this    {Cal}
-         * @returns {Cal}
+         * @this   {Cal}
+         * @return {Cal}
          */
         _install : function() {
             var
@@ -1500,9 +1500,9 @@
          *
          * @private
          *
-         * @this    {Cal}
-         * @param   {Date}
-         * @returns {undefined}
+         * @this   {Cal}
+         * @param  {Date}
+         * @return {undefined}
          */
         _draw : function(now) {
             var
@@ -1583,15 +1583,15 @@
          *
          * @private
          *
-         * @this    {Cal}
-         * @param   {number}
-         * @param   {number}
-         * @param   {number}
-         * @param   {string}
-         * @param   {boolean}
-         * @param   {boolean}
-         * @param   {string}
-         * @returns {DOMNode}
+         * @this   {Cal}
+         * @param  {number}
+         * @param  {number}
+         * @param  {number}
+         * @param  {string}
+         * @param  {boolean}
+         * @param  {boolean}
+         * @param  {string}
+         * @return {DOMNode}
          */
         _day2node : function(day, month, year, when, check) {
             var
@@ -1653,8 +1653,8 @@
          *
          * @private
          *
-         * @this    {Cal}
-         * @returns {object}
+         * @this   {Cal}
+         * @return {object}
          */
         _monthes2replaces : function() {
             var
@@ -1685,8 +1685,8 @@
          *
          * @private
          *
-         * @this    {Cal}
-         * @returns {Cal}
+         * @this   {Cal}
+         * @return {Cal}
          */
         _alive : function() {
             var
@@ -1768,9 +1768,9 @@
         /**
          * Go to needed date wrapper
          *
-         * @this    {Cal}
-         * @param   {Boolean|String|Date}
-         * @returns {undefined}
+         * @this   {Cal}
+         * @param  {Boolean|String|Date}
+         * @return {undefined}
          */
         _jump : function(to) {
             this.jump(to);
@@ -1784,9 +1784,9 @@
          *
          * @private
          *
-         * @this    {Cal}
-         * @param   {Event}
-         * @returns {undefined}
+         * @this   {Cal}
+         * @param  {Event}
+         * @return {undefined}
          */
         _click4document : function(event) {
             var
@@ -1802,9 +1802,9 @@
          *
          * @private
          *
-         * @this    {Cal}
-         * @param   {Event}
-         * @returns {undefined}
+         * @this   {Cal}
+         * @param  {Event}
+         * @return {undefined}
          */
         _keydown4document : function(event) {
             if (event.keyCode == 27 && this.shown) {
@@ -1816,9 +1816,9 @@
          *
          * @private
          *
-         * @this    {Cal}
-         * @param   {Event}
-         * @returns {undefined}
+         * @this   {Cal}
+         * @param  {Event}
+         * @return {undefined}
          */
         _mousedown4field : function(event) {
             var
@@ -1846,9 +1846,9 @@
          *
          * @private
          *
-         * @this    {Cal}
-         * @param   {Event}
-         * @returns {undefined}
+         * @this   {Cal}
+         * @param  {Event}
+         * @return {undefined}
          */
         _keydown4field : function(event) {
             var
@@ -1905,9 +1905,9 @@
          *
          * @private
          *
-         * @this    {Cal}
-         * @param   {Event}
-         * @returns {undefined}
+         * @this   {Cal}
+         * @param  {Event}
+         * @return {undefined}
          */
         _focus4field : function(event) {
             var
@@ -1933,9 +1933,9 @@
          *
          * @private
          *
-         * @this    {Cal}
-         * @param   {Event}
-         * @returns {undefined}
+         * @this   {Cal}
+         * @param  {Event}
+         * @return {undefined}
          */
         _blur4field : function(event) {
             if (this.shown && !this._hold) {
@@ -1951,9 +1951,9 @@
          *
          * @private
          *
-         * @this    {Cal}
-         * @param   {Event}
-         * @returns {undefined}
+         * @this   {Cal}
+         * @param  {Event}
+         * @return {undefined}
          */
         _mousemove4block : function(event) {
             if (this._timer) {
@@ -1967,9 +1967,9 @@
          *
          * @private
          *
-         * @this    {Cal}
-         * @param   {Event}
-         * @returns {undefined}
+         * @this   {Cal}
+         * @param  {Event}
+         * @return {undefined}
          */
         _mouseout4block : function(event) {
             var
@@ -1984,9 +1984,9 @@
          *
          * @private
          *
-         * @this    {Cal}
-         * @param   {Event}
-         * @returns {undefined}
+         * @this   {Cal}
+         * @param  {Event}
+         * @return {undefined}
          */
         _click4block : function(event) {
             var
@@ -2056,10 +2056,10 @@
          *
          * @private
          *
-         * @this    {Cal}
-         * @param   {string}
-         * @param   {object}
-         * @returns {string}
+         * @this   {Cal}
+         * @param  {string}
+         * @param  {object}
+         * @return {string}
          */
         _tmpl : function(tmpl, data) {
             data = data || {};
@@ -2088,10 +2088,10 @@
          *
          * @private
          *
-         * @this    {Cal}
-         * @param   {string}
-         * @param   {array}
-         * @returns {Number|String}
+         * @this   {Cal}
+         * @param  {string}
+         * @param  {array}
+         * @return {Number|String}
          */
         _indexof : function(pin, hay) {
             // Arrays and Objects allowed only
@@ -2121,11 +2121,11 @@
          *
          * @private
          *
-         * @this    {Cal}
-         * @param   {DOMNode}
-         * @param   {string}
-         * @param   {function(Event)}
-         * @returns {object}
+         * @this   {Cal}
+         * @param  {DOMNode}
+         * @param  {string}
+         * @param  {function(Event)}
+         * @return {object}
          */
         _bind : function(target, alias, handler) {
             var
@@ -2163,11 +2163,11 @@
          *
          * @private
          *
-         * @this    {Suggest}
-         * @param   {DOMNode}
-         * @param   {string}
-         * @param   {function(Event)}
-         * @returns {object}
+         * @this   {Suggest}
+         * @param  {DOMNode}
+         * @param  {string}
+         * @param  {function(Event)}
+         * @return {object}
          */
         _unbind : function(target, alias, handler) {
             var
@@ -2192,10 +2192,10 @@
          *
          * @private
          *
-         * @this    {Suggest}
-         * @param   {DOMNode}
-         * @param   {DOMNode}
-         * @returns {object}
+         * @this   {Suggest}
+         * @param  {DOMNode}
+         * @param  {DOMNode}
+         * @return {object}
          */
         _offsetize : function(from, till) {
             till = till || document.body;
@@ -2268,9 +2268,9 @@
         /**
          * Normalize an event object
          *
-         * @this    {Suggest}
-         * @param   {Event}
-         * @returns {Event}
+         * @this   {Suggest}
+         * @param  {Event}
+         * @return {Event}
          */
         _eventize : function(event) {
             event = event || window.event;
@@ -2328,11 +2328,11 @@
         /**
          * Save a needed context for further function execution
          *
-         * @this    {Cal}
-         * @param   {function}
-         * @param   {object}
-         * @param   {array}
-         * @returns {function}
+         * @this   {Cal}
+         * @param  {function}
+         * @param  {object}
+         * @param  {array}
+         * @return {function}
          */
         _proxy : function(fn, ctx) {
             return function() {
